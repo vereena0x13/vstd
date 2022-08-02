@@ -11,6 +11,9 @@
 #include <assert.h>
 
 
+#define VSTD_DEF extern
+
+
 #ifndef __cplusplus
 #error "Must compile as C++"
 #endif
