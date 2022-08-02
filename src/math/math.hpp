@@ -50,6 +50,57 @@ constexpr T move_towards(T value, T target, T rate) noexcept {
 	return lerp(value, target, rate);
 }
 
+// NOTE: And despite the NOTE above about the rotl/rotr functions,
+// so far, is_pow2 has caused to trouble. WTF C++? Either work or don't!
+template<typename T>
+constexpr bool is_pow2(T x) noexcept { return x > 0 && (x & (x - 1)) == 0; }
+
+constexpr u8 next_pow2(u8 y) noexcept {
+    u8 x = y;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x++;
+    return x;
+}
+
+constexpr u16 next_pow2(u16 y) noexcept {
+    u16 x = y;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x++;
+    return x;
+}
+
+constexpr u32 next_pow2(u32 y) noexcept {
+    u32 x = y;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x++;
+    return x;
+}
+
+constexpr u64 next_pow2(u64 y) noexcept {
+    u64 x = y;
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x |= x >> 32;
+    x++;
+    return x;
+}
+
 template<typename t>
 constexpr t pow(t base, t exp) noexcept {
     if(base == 0 && exp == 0) {
@@ -69,3 +120,24 @@ constexpr t pow(t base, t exp) noexcept {
     }
     return result;
 }
+
+
+#define BYTE_UNIT_MULTIPLES(X)  \
+    X(1,  KILO,   KIBI)         \
+    X(2,  MEGA,   MEBI)         \
+    X(3,  GIGA,   GIBI)         \
+    X(4,  TERA,   TEBI)         \
+    X(5,  PETA,   PEBI)         \
+    X(6,  EXA,    EXI )
+
+#define X(i, dec, bin)                           \
+    constexpr u64 dec##BYTE = pow<u64>(1000, i); \
+    constexpr u64 bin##BYTE = pow<u64>(1024, i); \
+    constexpr u64 dec##BYTES(u64 n) {            \
+        return n * dec##BYTE;                    \
+    }                                            \
+    constexpr u64 bin##BYTES(u64 n) {            \
+        return n * bin##BYTE;                    \
+    }
+BYTE_UNIT_MULTIPLES(X)
+#undef X

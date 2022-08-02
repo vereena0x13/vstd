@@ -101,24 +101,3 @@ void swap(T& a, T& b) {
 }
 
 
-#define BYTE_UNIT_MULTIPLES(X)  \
-	X(1,  KILO,   KIBI) 		\
-	X(2,  MEGA,   MEBI) 		\
-	X(3,  GIGA,   GIBI) 		\
-	X(4,  TERA,   TEBI) 		\
-	X(5,  PETA,   PEBI) 		\
-	X(6,  EXA,    EXI )
-
-#define X(i, dec, bin) 						     \
-	constexpr u64 dec##BYTE = pow<u64>(1000, i); \
-	constexpr u64 bin##BYTE = pow<u64>(1024, i); \
-	constexpr u64 dec##BYTES(u64 n) {		     \
-		return n * dec##BYTE;				     \
-	}										     \
-	constexpr u64 bin##BYTES(u64 n) {		     \
-		return n * bin##BYTE;				     \
-	}
-BYTE_UNIT_MULTIPLES(X)
-#undef X
-
-
