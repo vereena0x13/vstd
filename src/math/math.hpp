@@ -50,6 +50,26 @@ constexpr T move_towards(T value, T target, T rate) noexcept {
 	return lerp(value, target, rate);
 }
 
+// NOTE: I did this after trying to write each of these
+// as a single function template taking type `t`. But yknow,
+// sometimes C++ just doesn't feel like working so meh.
+#define DEFROT(t)                             \
+    constexpr t rotl(t x, t s) noexcept {     \
+        t mask = sizeof(t) * 8 - 1;           \
+        s &= mask;                            \
+        return (x << s) | (x >> (-s & mask)); \
+    }                                         \
+    constexpr t rotr(t x, t s) noexcept {     \
+        t mask = sizeof(t) * 8 - 1;           \
+        s &= mask;                            \
+        return (x >> s) | (x << (-s & mask)); \
+    }
+DEFROT(u8)
+DEFROT(u16)
+DEFROT(u32)
+DEFROT(u64)
+#undef DEFROT
+
 // NOTE: And despite the NOTE above about the rotl/rotr functions,
 // so far, is_pow2 has caused to trouble. WTF C++? Either work or don't!
 template<typename T>
