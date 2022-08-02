@@ -49,3 +49,23 @@ constexpr T move_towards(T value, T target, T rate) noexcept {
 	if(abs(value - target) < 0.5) return target;
 	return lerp(value, target, rate);
 }
+
+template<typename t>
+constexpr t pow(t base, t exp) noexcept {
+    if(base == 0 && exp == 0) {
+        return 1;
+    } else if(base == 0) {
+        return 0;
+    } else if(exp == 0) {
+        return 1;
+    }
+    t result = 1;
+    while(exp) {
+        if(exp & 1) {
+            result *= base;
+        }
+        exp >>= 1;
+        base *= base;
+    }
+    return result;
+}
