@@ -112,6 +112,7 @@
 #include <string.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <unistd.h>
 
 #ifdef VSTD_TESTING
 #include <unistd.h>
