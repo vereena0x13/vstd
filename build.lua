@@ -19,13 +19,13 @@ end
 
 
 include "header_top.hpp"
-	include "general.hpp"
 	include "math/math.hpp"
 	include "mem/allocator.hpp"
 	include "mem/temporary_storage.hpp"
 	include "mem/arena.hpp"
 	include "hash.hpp"
 	include "string.hpp"
+	include "general.hpp"
 	include "io/file.hpp"
 	include "io/data_input.hpp"
 	include "io/data_output.hpp"

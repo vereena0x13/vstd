@@ -113,11 +113,6 @@ void swap(T& a, T& b) {
 
 // end file header_top.hpp
 
-// begin file: general.hpp
-VSTD_DEF void panic(rstr fmt, ...);
-VSTD_DEF void todo();
-// end file general.hpp
-
 // begin file: math/math.hpp
 template<typename T>
 constexpr T square(T x) noexcept { return x * x; }
@@ -475,6 +470,11 @@ VSTD_DEF str tvsprintf(rstr fmt, va_list args);
 VSTD_DEF str tsprintf(rstr fmt, ...);
 VSTD_DEF void tfprintf(FILE *fh, rstr fmt, ...);
 // end file string.hpp
+
+// begin file: general.hpp
+VSTD_DEF void panic(rstr fmt, ...);
+VSTD_DEF void todo();
+// end file general.hpp
 
 // begin file: io/file.hpp
 VSTD_DEF str read_entire_file(str path, Allocator *a = NULL);
