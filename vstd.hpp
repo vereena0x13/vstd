@@ -1,6 +1,108 @@
-// begin file: header_top.hpp
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+////                                                                     ////
+////    ██╗   ██╗███████╗████████╗██████╗    ██╗  ██╗██████╗ ██████╗     ////
+////    ██║   ██║██╔════╝╚══██╔══╝██╔══██╗   ██║  ██║██╔══██╗██╔══██╗    ////
+////    ██║   ██║███████╗   ██║   ██║  ██║   ███████║██████╔╝██████╔╝    ////
+////    ╚██╗ ██╔╝╚════██║   ██║   ██║  ██║   ██╔══██║██╔═══╝ ██╔═══╝     ////
+////     ╚████╔╝ ███████║   ██║   ██████╔╝██╗██║  ██║██║     ██║         ////
+////      ╚═══╝  ╚══════╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝         ////
+////                                                                     ////
+////                     (A vereena0x13™ production)                     ////
+////                                                                     ////
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+// TODO: Add BitSet type
+// TODO: Maybe less dependence on standard 
+//       headers? would be nice..
+// TODO: Improve/Expand Allocators
+//		  - realloc? it's quite unclear to me if realloc is really
+//          worth it over freeing and allocating anew; maybe?
+//          seems better to just allocate smarter lol (i.e. less frequently)
+//        - alignment
+// TODO: Add more string functions
+//		  - strview -- I no longer recall what this was meant to do lol
+//        - Actually, maybe upgrade str and friends...?
+//           - Not sure what exactly I mean here lol; C++-ify slightly? *shrugs*
+// TODO: Add (more) file I/O
+//        - Actually a full virtual filesystem API would be nice
+// TODO: Add fallback allocation with logging 
+//		 (optional) to Temporary_Storage
+// TODO: Add a simple logging API
+//        - Just the basics: printf but to a "Log" which
+//          can output to any combination of the console
+//          and files on disk. Maybe we have other
+//          options for output as well (i.e. a common interface)
+//        - File rotation, ofc
+// TODO: Add tmark and treset to Temporary_Storage?
+// TODO: Add a debug memory allocator that can be used
+// 		 as a wrapper around any Allocator* that provides
+//		 some behind-the-scenes bookkeeping in order
+//		 to detect things like leaks, double-frees, etc.
+// TODO: Add an option for Arena*s to use guard pages
+// TODO: Add an NBT-esque general-purpose binary data format.
+//        - I don't want to just copy NBT, first of all. More betterer.
+//          Would be nice if we could make API-side improvements...
+//          I don't know. I wanted to use tinyrefl to use attributes to
+//          generate serialization code from annotated structs, but tinyrefl
+//          is a piece of shit so. And I haven't felt like writing a lexer and
+//          making that work myself.. yet.
+// TODO: Add string builder
+//		  - maybe this uses the binary read/write thing?
+//		  - or maybe the binary read/write thing uses this?
+// TODO: Add hexdump printer
+// TODO: Add a base64 codec
+// TODO: Add RLE codec
+// TODO: Add intel hex encoder
+// 	 	  - Also SRec?
+// TODO: Add sorting functions for Array<T>, etc.
+// TODO: Add a segment tree
+// TODO: Add a "Sparse Set" (the funky one w/ uninit memory)
+//		  - Also, "Sparse Map", because it's free to add ^
+// TODO: Add a ring buffer type
+//        - Support both Static_Ring_Buffer and Ring_Buffer? or...
+// TODO: Make sure this stuff works on winderps..... :/
+// TODO: Add bignum structs
+//		  - BigInt
+//		  - BigRat?
+//		  - BigDecimal?
+//		  - Maybe also special things like u128/s128?
+//			- May be a thing that already exists for larger
+//			  CPU registers/SIMD *shrugs*
+// TODO: Add a JSON parser/printer and "object model", as it were.
+// TODO: Add intrinsics wrappers
+// TODO: Add SIMD wrappers
+//        - Probably largely based on structs with overloaded operators...
+//          i.e. u32x4 or w/e
+// TODO: Add various linked list structs
+//        - intrusive
+//        - non-intrusive? (is this even useful?)
+//        - include iterators, etc.
+// TODO: Add write/read varint to DataOutput/DataInput
+// TODO: Add an LRU cache type
+// TODO: Add a priority queue type
+// TODO: Add command-line argument parsing
+
+
+
+////////////////////////////////////
+////////////////////////////////////
+///            HEADER            ///
+////////////////////////////////////
+////////////////////////////////////
+
+
+
 #ifndef VSTD_H
 #define VSTD_H
+
+
+/////////////////////
+///    General    ///
+/////////////////////
 
 
 #include <stdlib.h>
@@ -11,8 +113,15 @@
 #include <setjmp.h>
 #include <assert.h>
 
+#ifdef VSTD_TESTING
+#include <unistd.h>
+#include <sys/wait.h>
+#endif
 
+
+#ifndef VSTD_DEF
 #define VSTD_DEF extern
+#endif
 
 
 #ifndef __cplusplus
@@ -32,6 +141,17 @@
 //#error "MinGW not yet supported!"
 #else
 #error "Unknown compiler!"
+#endif
+
+
+#if defined(__linux__)
+#define VSTD_OS_LINUX
+#elif defined(_WIN32) || defined(_WIN64)
+#define VSTD_OS_WINDOWS
+#elif defined(__APPLE__) && defined(__MACH__)
+#define VSTD_OS_OSX
+#else
+#warning "Unknown operating system!"
 #endif
 
 
@@ -88,13 +208,25 @@ static_assert(sizeof(f64) == 8);
 
 
 // TODO
-#define nvrreturn     __attribute__((noreturn))
-#define nvrinline     __attribute__((noinline))
-#define forceinline   __attribute__((always_inline))
+#define nvrreturn 	  __attribute__((noreturn))
+#define nvrinline 	  __attribute__((noinline))
+#define forceinline	  __attribute__((always_inline))
 #define static_init   __attribute__((constructor))
 #define static_deinit __attribute__((destructor))
-#define debug_trap    __builtin_trap
-#define unreachable   __builtin_unreachable
+
+
+// TODO
+#define debug_trap __builtin_trap
+#define unreachable __builtin_unreachable
+
+
+#ifndef PATH_SEPARATOR
+#ifdef _WIN32
+#define PATH_SEPARATOR '\\'
+#else
+#define PATH_SEPARATOR '/'
+#endif
+#endif
 
 
 template<typename T>
@@ -111,9 +243,173 @@ void swap(T& a, T& b) {
 	b = c;
 }
 
-// end file header_top.hpp
 
-// begin file: math/math.hpp
+//////////////////////
+///    Sections    ///
+//////////////////////
+
+
+#ifdef VSTD_SECTIONS
+#ifndef VSTD_CC_GCC
+#error "VSTD_SECTIONS only supported on GCC"
+#endif
+
+
+#define SECTION(section_name) __attribute__((section(#section_name)))
+
+#define SECTION_START(section_name) __start_##section_name[]
+#define SECTION_STOP(section_name) __stop_##section_name[]
+
+#define SECTION_START_SYMBOL(section_name, type)                            \
+    ({                                                                      \
+        extern const type SECTION_START(section_name);                      \
+        __start_##section_name;                                             \
+    })
+
+#define SECTION_STOP_SYMBOL(section_name, type)                             \
+    ({                                                                      \
+        extern const type SECTION_STOP(section_name);                       \
+        __stop_##section_name;                                              \
+    })
+    
+
+#define SECTION_FOREACH(section_name, type, iter)                           \
+    for(type const* iter = SECTION_START_SYMBOL(section_name, type);        \
+        iter < SECTION_STOP_SYMBOL(section_name, type); iter++)
+#endif
+
+
+///////////////////
+///    Maths    ///
+///////////////////
+
+
+// NOTE: I did this after trying to write each of these
+// as a single function template taking type `t`. But yknow,
+// sometimes C++ just doesn't feel like working so meh.
+#define DEFROT(t)                             \
+    constexpr t rotl(t x, t s) noexcept {     \
+        t mask = sizeof(t) * 8 - 1;           \
+        s &= mask;                            \
+        return (x << s) | (x >> (-s & mask)); \
+    }                                         \
+    constexpr t rotr(t x, t s) noexcept {     \
+        t mask = sizeof(t) * 8 - 1;           \
+        s &= mask;                            \
+        return (x >> s) | (x << (-s & mask)); \
+    }
+DEFROT(u8)
+DEFROT(u16)
+DEFROT(u32)
+DEFROT(u64)
+#undef DEFROT
+
+
+// NOTE: And despite the NOTE above about the rotl/rotr functions,
+// so far, is_pow2 has caused to trouble. WTF C++? Either work or don't!
+template<typename T>
+constexpr bool is_pow2(T x) noexcept { return x > 0 && (x & (x - 1)) == 0; }
+
+constexpr u8 next_pow2(u8 y) noexcept {
+	u8 x = y;
+	x--;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x++;
+	return x;
+}
+
+constexpr u16 next_pow2(u16 y) noexcept {
+	u16 x = y;
+	x--;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x++;
+	return x;
+}
+
+constexpr u32 next_pow2(u32 y) noexcept {
+	u32 x = y;
+	x--;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	x++;
+	return x;
+}
+
+constexpr u64 next_pow2(u64 y) noexcept {
+	u64 x = y;
+	x--;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	x |= x >> 32;
+	x++;
+	return x;
+}
+
+template<typename T>
+constexpr T align_up(T x, T align) noexcept {
+	assert(is_pow2(x) && "must align to a power of two");
+    return (x + (align - 1)) & ~(align - 1);
+}
+
+template<typename T>
+constexpr T align_down(T x, T align) noexcept {
+	assert(is_pow2(x) && "must align to a power of two");
+    return x - (x & (align - 1));
+}
+
+template<typename t>
+constexpr t pow(t base, t exp) noexcept {
+    if(base == 0 && exp == 0) {
+        return 1;
+    } else if(base == 0) {
+        return 0;
+    } else if(exp == 0) {
+        return 1;
+    }
+    t result = 1;
+    while(exp) {
+        if(exp & 1) {
+            result *= base;
+        }
+        exp >>= 1;
+        base *= base;
+    }
+    return result;
+}
+
+
+#define BYTE_UNIT_MULTIPLES(X)  \
+	X(1,  KILO,   KIBI) 		\
+	X(2,  MEGA,   MEBI) 		\
+	X(3,  GIGA,   GIBI) 		\
+	X(4,  TERA,   TEBI) 		\
+	X(5,  PETA,   PEBI) 		\
+	X(6,  EXA,    EXI )
+
+#define X(i, dec, bin) 						     \
+	constexpr u64 dec##BYTE = pow<u64>(1000, i); \
+	constexpr u64 bin##BYTE = pow<u64>(1024, i); \
+	constexpr u64 dec##BYTES(u64 n) {		     \
+		return n * dec##BYTE;				     \
+	}										     \
+	constexpr u64 bin##BYTES(u64 n) {		     \
+		return n * bin##BYTE;				     \
+	}
+BYTE_UNIT_MULTIPLES(X)
+#undef X
+
+
 template<typename T>
 constexpr T square(T x) noexcept { return x * x; }
 
@@ -166,121 +462,20 @@ constexpr T move_towards(T value, T target, T rate) noexcept {
 	return lerp(value, target, rate);
 }
 
-// NOTE: I did this after trying to write each of these
-// as a single function template taking type `t`. But yknow,
-// sometimes C++ just doesn't feel like working so meh.
-#define DEFROT(t)                             \
-    constexpr t rotl(t x, t s) noexcept {     \
-        t mask = sizeof(t) * 8 - 1;           \
-        s &= mask;                            \
-        return (x << s) | (x >> (-s & mask)); \
-    }                                         \
-    constexpr t rotr(t x, t s) noexcept {     \
-        t mask = sizeof(t) * 8 - 1;           \
-        s &= mask;                            \
-        return (x >> s) | (x << (-s & mask)); \
-    }
-DEFROT(u8)
-DEFROT(u16)
-DEFROT(u32)
-DEFROT(u64)
-#undef DEFROT
 
-// NOTE: And despite the NOTE above about the rotl/rotr functions,
-// so far, is_pow2 has caused to trouble. WTF C++? Either work or don't!
-template<typename T>
-constexpr bool is_pow2(T x) noexcept { return x > 0 && (x & (x - 1)) == 0; }
-
-constexpr u8 next_pow2(u8 y) noexcept {
-    u8 x = y;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x++;
-    return x;
-}
-
-constexpr u16 next_pow2(u16 y) noexcept {
-    u16 x = y;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x++;
-    return x;
-}
-
-constexpr u32 next_pow2(u32 y) noexcept {
-    u32 x = y;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    x++;
-    return x;
-}
-
-constexpr u64 next_pow2(u64 y) noexcept {
-    u64 x = y;
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    x |= x >> 32;
-    x++;
-    return x;
-}
-
-template<typename t>
-constexpr t pow(t base, t exp) noexcept {
-    if(base == 0 && exp == 0) {
-        return 1;
-    } else if(base == 0) {
-        return 0;
-    } else if(exp == 0) {
-        return 1;
-    }
-    t result = 1;
-    while(exp) {
-        if(exp & 1) {
-            result *= base;
-        }
-        exp >>= 1;
-        base *= base;
-    }
-    return result;
-}
+//////////////////////
+///    OS Misc.    ///
+//////////////////////
 
 
-#define BYTE_UNIT_MULTIPLES(X)  \
-    X(1,  KILO,   KIBI)         \
-    X(2,  MEGA,   MEBI)         \
-    X(3,  GIGA,   GIBI)         \
-    X(4,  TERA,   TEBI)         \
-    X(5,  PETA,   PEBI)         \
-    X(6,  EXA,    EXI )
+VSTD_DEF u64 get_page_size();
 
-#define X(i, dec, bin)                           \
-    constexpr u64 dec##BYTE = pow<u64>(1000, i); \
-    constexpr u64 bin##BYTE = pow<u64>(1024, i); \
-    constexpr u64 dec##BYTES(u64 n) {            \
-        return n * dec##BYTE;                    \
-    }                                            \
-    constexpr u64 bin##BYTES(u64 n) {            \
-        return n * bin##BYTE;                    \
-    }
-BYTE_UNIT_MULTIPLES(X)
-#undef X
 
-// end file math/math.hpp
+///////////////////////
+///    Allocator    ///
+//////////////////////
 
-// begin file: mem/allocator.hpp
+
 struct Allocator {
 	Allocator *parent;
 
@@ -306,9 +501,13 @@ inline void operator delete[](void*, _vstd_new_wrapper, void*) {}
 #define pnew(t, p, ...) (new(_vstd_new_wrapper(), p) t(__VA_ARGS__))
 #define xanew(t, a, ...) pnew(t, xalloc(sizeof(t), a), __VA_ARGS__)
 #define xnew(t, ...) xanew(t, allocator, __VA_ARGS__)
-// end file mem/allocator.hpp
 
-// begin file: mem/temporary_storage.hpp
+
+///////////////////////////////
+///    Temporary Storage    ///
+///////////////////////////////
+
+
 #ifndef TEMPORARY_STORAGE_SIZE
 #define TEMPORARY_STORAGE_SIZE KIBIBYTES(64)
 #endif
@@ -334,9 +533,13 @@ VSTD_DEF Temporary_Storage temporary_storage;
 
 VSTD_DEF void* talloc(u64 n);
 VSTD_DEF void treset();
-// end file mem/temporary_storage.hpp
 
-// begin file: mem/arena.hpp
+
+///////////////////
+///    Arena    ///
+///////////////////
+
+
 #ifndef ARENA_DEFAULT_BLOCK_SIZE
 #define ARENA_DEFAULT_BLOCK_SIZE KIBIBYTES(64)
 #endif
@@ -418,14 +621,22 @@ struct Arena : public Allocator {
         current_block = NULL;
     }
 };
-// end file mem/arena.hpp
 
-// begin file: hash.hpp
+
+/////////////////////
+///    Hashing    ///
+/////////////////////
+
+
 VSTD_DEF u32 murmur3(void const *input, s32 len, u32 seed);
 VSTD_DEF u32 fnv1a(void const* input, u64 len);
-// end file hash.hpp
 
-// begin file: string.hpp
+
+/////////////////////
+///    Strings    ///
+/////////////////////
+
+
 //
 // NOTE: This is how our _str type works:
 //
@@ -469,277 +680,34 @@ VSTD_DEF str substr(str s, u64 b, u64 e);
 VSTD_DEF str tvsprintf(rstr fmt, va_list args);
 VSTD_DEF str tsprintf(rstr fmt, ...);
 VSTD_DEF void tfprintf(FILE *fh, rstr fmt, ...);
-// end file string.hpp
 
-// begin file: general.hpp
+VSTD_DEF istr intern(cstr s);
+VSTD_DEF bool isintern(str s);
+
+
+//////////////////////////
+///    More General    ///
+//////////////////////////
+
+
 VSTD_DEF void panic(rstr fmt, ...);
 VSTD_DEF void todo();
-// end file general.hpp
 
-// begin file: io/file.hpp
+
+//////////////////////
+///    File I/O    ///
+//////////////////////
+
+
 VSTD_DEF str read_entire_file(str path, Allocator *a = NULL);
 VSTD_DEF bool write_entire_file(str path, str data);
-// end file io/file.hpp
 
-// begin file: io/data_input.hpp
-struct DataInput {
-    virtual u8 read_u8() = 0;
 
-    inline u16 read_u16() {
-        return (cast(u16, read_u8()) << 8) | 
-                cast(u16, read_u8());
-    }
+//////////////////////////
+///    Static Array    ///
+//////////////////////////
 
-    inline u32 read_u32() {
-        return (cast(u32, read_u8()) << 24) |
-               (cast(u32, read_u8()) << 16) |
-               (cast(u32, read_u8()) << 8) |
-                read_u8();
-    }
 
-    inline u64 read_u64() {
-        return (cast(u64, read_u8()) << 56) |
-               (cast(u64, read_u8()) << 48) |
-               (cast(u64, read_u8()) << 40) |
-               (cast(u64, read_u8()) << 32) |
-               (cast(u64, read_u8()) << 24) |
-               (cast(u64, read_u8()) << 16) |
-               (cast(u64, read_u8()) << 8) |
-                cast(u64, read_u8());
-    }
-
-    inline s8 read_s8() { return cast(s8, read_u8()); }
-    inline s16 read_s16() { return cast(s16, read_u16()); }
-    inline s32 read_s32() { return cast(s32, read_u32()); }
-    inline s64 read_s64() { return cast(s64, read_u64()); }
-
-    inline f32 read_f32() {
-        union {
-            u32 u;
-            f32 f;
-        };
-        u = read_u32();
-        return f;
-    }
-
-    inline f64 read_f64() {
-        union {
-            u64 u;
-            f64 f;
-        };
-        u = read_u64();
-        return f;
-    }
-
-    inline str read_str() {
-        u64 len = read_u64();
-        str s = mkstr(NULL, len, allocator);
-        for(u64 i = 0; i < len; i++) s[i] = read_u8();
-        return s;
-    }
-
-    inline cstr read_cstr() {
-        u64 len = read_u64();
-        cstr s = cast(cstr, xalloc(len + 1, allocator));
-        for(u64 i = 0; i < len; i++) s[i] = read_u8();
-        return s;
-    }
-};
-// end file io/data_input.hpp
-
-// begin file: io/data_output.hpp
-struct DataOutput {
-    virtual void write_u8(u8 x) = 0;
-
-    inline void write_u16(u16 x) {
-        write_u8((x >> 8) & 0xFF);
-        write_u8(x & 0xFF);
-    }
-
-    inline  void write_u32(u32 x) {
-        write_u8((x >> 24) & 0xFF);
-        write_u8((x >> 16) & 0xFF);
-        write_u8((x >> 8) & 0xFF);
-        write_u8(x & 0xFF);
-    }
-
-    inline void write_u64(u64 x) {
-        write_u8((x >> 56) & 0xFF);
-        write_u8((x >> 48) & 0xFF);
-        write_u8((x >> 40) & 0xFF);
-        write_u8((x >> 32) & 0xFF);
-        write_u8((x >> 24) & 0xFF);
-        write_u8((x >> 16) & 0xFF);
-        write_u8((x >> 8) & 0xFF);
-        write_u8(x & 0xFF);
-    }
-
-    inline void write_s8(s8 x) { write_u8(cast(u8, x)); }
-    inline void write_s16(s16 x) { write_u16(cast(u16, x)); }
-    inline void write_s32(s32 x) { write_u32(cast(u32, x)); }
-    inline void write_s64(s64 x) { write_u64(cast(u64, x)); }
-
-    inline void write_f32(f32 x) {
-        union {
-            f32 f;
-            u32 u;
-        };
-        f = x;
-        write_u32(u);
-    }
-
-    inline void write_f64(f64 x) {
-        union {
-            f64 f;
-            u64 u;
-        };
-        f = x;
-        write_u64(u); 
-    }
-
-    inline void write_str(str s) {
-        u64 len = strsz(s);
-        write_u64(len);
-        for(u64 i = 0; i < len; i++) write_u8(s[i]);
-    }
-
-    inline void write_cstr(cstr s) {
-        u64 len = strlen(s);
-        write_u64(len);
-        for(u64 i = 0; i < len; i++) write_u8(s[i]);
-    }
-};
-
-struct RandomAccessDataOutput {
-    virtual u64 reserve(u64 n) = 0;
-    virtual void set_u8(u64 i, u8 x) = 0;
-
-    inline void set_u16(u64 i, u16 x) {
-        set_u8(i, (x >> 8) & 0xFF);
-        set_u8(i + 1, x & 0xFF);
-    }
-
-    inline void set_u32(u64 i, u32 x) {
-        set_u8(i, (x >> 24) & 0xFF);
-        set_u8(i + 1, (x >> 16) & 0xFF);
-        set_u8(i + 2, (x >> 8) & 0xFF);
-        set_u8(i + 3, x & 0xFF);
-    }
-
-    inline void set_u64(u64 i, u64 x) {
-        set_u8(i, (x >> 56) & 0xFF);
-        set_u8(i + 1, (x >> 48) & 0xFF);
-        set_u8(i + 2, (x >> 40) & 0xFF);
-        set_u8(i + 3, (x >> 32) & 0xFF);
-        set_u8(i + 4, (x >> 24) & 0xFF);
-        set_u8(i + 5, (x >> 16) & 0xFF);
-        set_u8(i + 6, (x >> 8) & 0xFF);
-        set_u8(i + 7, x & 0xFF);
-    }
-
-    inline void set_s8(u64 i, s8 x) { set_u8(i, cast(u8, x)); }
-    inline void set_s16(u64 i, s16 x) { set_u16(i, cast(u16, x)); }
-    inline void set_s32(u64 i, s32 x) { set_u32(i, cast(u32, x)); }
-    inline void set_s64(u64 i, s64 x) { set_u64(i, cast(u64, x)); }
-};
-// end file io/data_output.hpp
-
-// begin file: io/bytebuf.hpp
-#ifndef BYTEBUF_DEFAULT_SIZE
-#define BYTEBUF_DEFAULT_SIZE 4096
-#endif
-
-struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOutput {
-    static ByteBuf wrap(cstr s) { return ByteBuf(cast(u8*, s), 0, strlen(s)); }
-    static ByteBuf wrap(u8 *p, u64 n) { return ByteBuf(p, 0, n); }
-
-    u8 *data = NULL;
-    u64 index = 0;
-    u64 size;
-
-    ByteBuf() : ByteBuf(BYTEBUF_DEFAULT_SIZE) {}
-    ByteBuf(u64 _size) : size(_size) {}
-    ByteBuf(u8 *_data, u64 _index, u64 _size) : data(_data), index(_index), size(_size) {}
-
-    void deinit() {
-        xfree(data);
-    }
-
-    void write_to_file(cstr path) {
-        FILE *fh = fopen(path, "w");
-        assert(fwrite(data, sizeof(char), index, fh) == index);
-        fflush(fh);
-        fclose(fh);
-    }
-
-    bool read_from_file(cstr path) {
-        FILE *fh = fopen(path, "r");
-        if(!fh) return false;
-
-        fseek(fh, 0L, SEEK_END);
-	    u64 size = ftell(fh);
-	    rewind(fh);
-
-        data = cast(u8*, xalloc(size));
-    	assert(fread(data, sizeof(char), size, fh) == size);
-
-        fclose(fh);
-
-        return true;
-    }
-
-    str tostr() {
-        auto s = mkstr(NULL, index);
-        memcpy(s, data, index);
-        return s;
-    }
-
-    void reset() {
-        index = 0;
-    }
-
-    void expand() {
-        if(data) {
-            u64 new_size = size * 2;
-            u8 *new_data = cast(u8*, xalloc(new_size));
-            memcpy(new_data, data, size);
-            xfree(data);
-            data = new_data;
-            size = new_size;
-        } else {
-            assert(size);
-            data = cast(u8*, xalloc(size));
-        }
-    }
-
-    u8 read_u8() override {
-        return data[index++];
-    }
-
-    void write_u8(u8 x) override {
-        if(index >= size || data == NULL) {
-            expand();
-        }
-    
-        data[index++] = x;
-    }
-
-    u64 reserve(u64 n) override {
-        if(index + n >= size || data == NULL) {
-            expand();
-        }
-        u64 i = index;
-        index += n;
-        return i;
-    }
-
-    void set_u8(u64 i, u8 x) override {
-        data[i] = x;
-    }
-};
-// end file io/bytebuf.hpp
-
-// begin file: ds/static_array.hpp
 template<typename T, u64 capacity>
 struct Static_Array {
     static constexpr u64 size = capacity;
@@ -804,11 +772,58 @@ struct Static_Array {
 	T& operator[](u64 x) { return data[x]; }
 	T const& operator[](u64 x) const { return data[x]; }
 };
-// end file ds/static_array.hpp
 
-// begin file: ds/array.hpp
-#ifndef VSTD_ARRAY_DEFAULT_SIZE
-#define VSTD_ARRAY_DEFAULT_SIZE 64
+
+////////////////////////////
+///    Slot Allocator    ///
+////////////////////////////
+
+
+// NOTE: This is extremely similar to Static_Array
+// but, at the moment, I feel like keeping them separate
+// since they have different intended uses.
+//          - vereena, 5/12/20
+
+template<typename T, u32 size>
+struct Slot_Allocator {
+    T slots[size];
+    s32 count;
+
+    Slot_Allocator() {
+        memset(slots, 0, sizeof(slots));
+        count = 0;
+    }
+
+    void clear() {
+        count = 0;
+    }
+
+    s32 index_of(T x) {
+        for(s32 i = 0; i < count; i++) {
+            if(slots[i] == x) return i;
+        }
+        return -1;
+    }
+
+    s32 alloc(T x) {      
+        s32 i = index_of(x);
+        if(i != -1) return i;
+
+        if(count == size) return -1;
+
+        slots[count] = x;
+        return count++;
+    }
+};
+
+
+///////////////////
+///    Array    ///
+///////////////////
+
+
+#ifndef ARRAY_DEFAULT_SIZE
+#define ARRAY_DEFAULT_SIZE 64
 #endif
 
 template<typename T>
@@ -879,7 +894,7 @@ struct Array {
 	}
 
 	void resize(u64 size) {
-		if(size < VSTD_ARRAY_DEFAULT_SIZE) return;
+		if(size < ARRAY_DEFAULT_SIZE) return;
 
 		assert(size >= count);
 
@@ -967,59 +982,36 @@ struct Array {
 private:
 	void check_init() {
 		if(data == NULL) {
-			size = VSTD_ARRAY_DEFAULT_SIZE;
+			size = ARRAY_DEFAULT_SIZE;
 			data = cast(T*, xalloc(sizeof(T) * size, a));
 		}
 	}
 };
-// end file ds/array.hpp
 
-// begin file: ds/slot_allocator.hpp
-template<typename T, u32 size>
-struct Slot_Allocator {
-    T slots[size];
-    s32 count;
 
-    Slot_Allocator() {
-        memset(slots, 0, sizeof(slots));
-        count = 0;
-    }
+////////////////////////
+///    Hash Table    ///
+////////////////////////
 
-    void clear() {
-        count = 0;
-    }
 
-    s32 index_of(T x) {
-        for(s32 i = 0; i < count; i++) {
-            if(slots[i] == x) return i;
-        }
-        return -1;
-    }
-
-    s32 alloc(T x) {      
-        s32 i = index_of(x);
-        if(i != -1) return i;
-
-        if(count == size) return -1;
-
-        slots[count] = x;
-        return count++;
-    }
-};
-// end file ds/slot_allocator.hpp
-
-// begin file: ds/hash_table.hpp
 // TODO: use 64-bit hashes?
 // TODO: switch hash table to use a 64-bit size and count?
 
 
+// NOTE: We're currently just using a fixed seed
+// theoretically we _could_ generate it randomly
+// at app-startup (or we could even be more granular
+// than that and make it unique to the hash table, but
+// meh, don't know that we need to.)
+// I just got this number off of random.org.
+//				- vereena, 5/21/20
 constexpr u32 HASH_TABLE_DEFAULT_SEED = 0xB23D66D5;
 
 template<typename K>
-using HashFN = u32 (*)(K const&);
+using HashFN = u32 (*)(K const&); // TODO: Better name?
 
 template<typename K>
-using EqFN = bool (*)(K const&, K const&);
+using EqFN = bool (*)(K const&, K const&); // TODO: Better name?
 
 template<typename T>
 u32 default_hash_fn(T const& v) {
@@ -1043,12 +1035,18 @@ bool default_eq_fn(T const& a, T const& b) {
 #endif
 
 
+// NOTE: Currently, we _require_ size to be a power of 2!
+// Eventually, we _should_ switch to using sizes that are
+// prime numbers. Probably.
+// 				- vereena, 5/21/20
+
 // NOTE: This hash table uses "Robin Hood Hashing":
 // " Robin Hood hashing is a technique for implementing hash tables.   				"
 // " It is based on open addressing with a simple but clever twist: As new   		"
 // " keys are inserted, old keys are shifted around in a way such that all   		"
 // " keys stay reasonably close to the slot they originally hash to. In particular, "
 // " the variance of the keys distances from their "home" slots is minimized.  		"
+//				- vereena, 11/23/20
 
 template<typename K, typename V, HashFN<K> hash_fn = default_hash_fn, EqFN<K> eq_fn = default_eq_fn>
 struct Hash_Table {
@@ -1243,37 +1241,363 @@ u32 cstr_hash_fn(cstr const& s) {
 bool cstr_eq_fn(cstr const& a, cstr const& b) {
     return strcmp(a, b) == 0;
 }
-// end file ds/hash_table.hpp
 
-// begin file: header_bot.hpp
+
+/////////////////////////
+///    I/O Streams    ///
+/////////////////////////
+
+
+struct DataInput {
+    virtual u8 read_u8() = 0;
+
+    inline u16 read_u16() {
+        return (cast(u16, read_u8()) << 8) | 
+                cast(u16, read_u8());
+    }
+
+    inline u32 read_u32() {
+        return (cast(u32, read_u8()) << 24) |
+               (cast(u32, read_u8()) << 16) |
+               (cast(u32, read_u8()) << 8) |
+                read_u8();
+    }
+
+    inline u64 read_u64() {
+        return (cast(u64, read_u8()) << 56) |
+               (cast(u64, read_u8()) << 48) |
+               (cast(u64, read_u8()) << 40) |
+               (cast(u64, read_u8()) << 32) |
+               (cast(u64, read_u8()) << 24) |
+               (cast(u64, read_u8()) << 16) |
+               (cast(u64, read_u8()) << 8) |
+                cast(u64, read_u8());
+    }
+
+    inline s8 read_s8() { return cast(s8, read_u8()); }
+    inline s16 read_s16() { return cast(s16, read_u16()); }
+    inline s32 read_s32() { return cast(s32, read_u32()); }
+    inline s64 read_s64() { return cast(s64, read_u64()); }
+
+    inline f32 read_f32() {
+        union {
+            u32 u;
+            f32 f;
+        };
+        u = read_u32();
+        return f;
+    }
+
+    inline f64 read_f64() {
+        union {
+            u64 u;
+            f64 f;
+        };
+        u = read_u64();
+        return f;
+    }
+
+    inline str read_str() {
+        u64 len = read_u64();
+        str s = mkstr(NULL, len, allocator);
+        for(u64 i = 0; i < len; i++) s[i] = read_u8();
+        return s;
+    }
+
+    inline cstr read_cstr() {
+        u64 len = read_u64();
+        cstr s = cast(cstr, xalloc(len + 1, allocator));
+        for(u64 i = 0; i < len; i++) s[i] = read_u8();
+        return s;
+    }
+};
+
+
+struct DataOutput {
+    virtual void write_u8(u8 x) = 0;
+
+    inline void write_u16(u16 x) {
+        write_u8((x >> 8) & 0xFF);
+        write_u8(x & 0xFF);
+    }
+
+    inline  void write_u32(u32 x) {
+        write_u8((x >> 24) & 0xFF);
+        write_u8((x >> 16) & 0xFF);
+        write_u8((x >> 8) & 0xFF);
+        write_u8(x & 0xFF);
+    }
+
+    inline void write_u64(u64 x) {
+        write_u8((x >> 56) & 0xFF);
+        write_u8((x >> 48) & 0xFF);
+        write_u8((x >> 40) & 0xFF);
+        write_u8((x >> 32) & 0xFF);
+        write_u8((x >> 24) & 0xFF);
+        write_u8((x >> 16) & 0xFF);
+        write_u8((x >> 8) & 0xFF);
+        write_u8(x & 0xFF);
+    }
+
+    inline void write_s8(s8 x) { write_u8(cast(u8, x)); }
+    inline void write_s16(s16 x) { write_u16(cast(u16, x)); }
+    inline void write_s32(s32 x) { write_u32(cast(u32, x)); }
+    inline void write_s64(s64 x) { write_u64(cast(u64, x)); }
+
+    inline void write_f32(f32 x) {
+        union {
+            f32 f;
+            u32 u;
+        };
+        f = x;
+        write_u32(u);
+    }
+
+    inline void write_f64(f64 x) {
+        union {
+            f64 f;
+            u64 u;
+        };
+        f = x;
+        write_u64(u); 
+    }
+
+    inline void write_str(str s) {
+        u64 len = strsz(s);
+        write_u64(len);
+        for(u64 i = 0; i < len; i++) write_u8(s[i]);
+    }
+
+    inline void write_cstr(cstr s) {
+        u64 len = strlen(s);
+        write_u64(len);
+        for(u64 i = 0; i < len; i++) write_u8(s[i]);
+    }
+};
+
+struct RandomAccessDataOutput {
+    virtual u64 reserve(u64 n) = 0;
+    virtual void set_u8(u64 i, u8 x) = 0;
+
+    inline void set_u16(u64 i, u16 x) {
+        set_u8(i, (x >> 8) & 0xFF);
+        set_u8(i + 1, x & 0xFF);
+    }
+
+    inline void set_u32(u64 i, u32 x) {
+        set_u8(i, (x >> 24) & 0xFF);
+        set_u8(i + 1, (x >> 16) & 0xFF);
+        set_u8(i + 2, (x >> 8) & 0xFF);
+        set_u8(i + 3, x & 0xFF);
+    }
+
+    inline void set_u64(u64 i, u64 x) {
+        set_u8(i, (x >> 56) & 0xFF);
+        set_u8(i + 1, (x >> 48) & 0xFF);
+        set_u8(i + 2, (x >> 40) & 0xFF);
+        set_u8(i + 3, (x >> 32) & 0xFF);
+        set_u8(i + 4, (x >> 24) & 0xFF);
+        set_u8(i + 5, (x >> 16) & 0xFF);
+        set_u8(i + 6, (x >> 8) & 0xFF);
+        set_u8(i + 7, x & 0xFF);
+    }
+
+    inline void set_s8(u64 i, s8 x) { set_u8(i, cast(u8, x)); }
+    inline void set_s16(u64 i, s16 x) { set_u16(i, cast(u16, x)); }
+    inline void set_s32(u64 i, s32 x) { set_u32(i, cast(u32, x)); }
+    inline void set_s64(u64 i, s64 x) { set_u64(i, cast(u64, x)); }
+};
+
+
+#ifndef BYTEBUF_DEFAULT_SIZE
+#define BYTEBUF_DEFAULT_SIZE 4096
+#endif
+
+struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOutput {
+    static ByteBuf wrap(cstr s) { return ByteBuf(cast(u8*, s), 0, strlen(s)); }
+    static ByteBuf wrap(u8 *p, u64 n) { return ByteBuf(p, 0, n); }
+
+    u8 *data = NULL;
+    u64 index = 0;
+    u64 size;
+
+    ByteBuf() : ByteBuf(BYTEBUF_DEFAULT_SIZE) {}
+    ByteBuf(u64 _size) : size(_size) {}
+    ByteBuf(u8 *_data, u64 _index, u64 _size) : data(_data), index(_index), size(_size) {}
+
+    void deinit() {
+        xfree(data);
+    }
+
+    void write_to_file(cstr path) {
+        FILE *fh = fopen(path, "w");
+        assert(fwrite(data, sizeof(char), index, fh) == index);
+        fflush(fh);
+        fclose(fh);
+    }
+
+    bool read_from_file(cstr path) {
+        FILE *fh = fopen(path, "r");
+        if(!fh) return false;
+
+        fseek(fh, 0L, SEEK_END);
+	    u64 size = ftell(fh);
+	    rewind(fh);
+
+        data = cast(u8*, xalloc(size));
+    	assert(fread(data, sizeof(char), size, fh) == size);
+
+        fclose(fh);
+
+        return true;
+    }
+
+    str tostr() {
+        auto s = mkstr(NULL, index);
+        memcpy(s, data, index);
+        return s;
+    }
+
+    void reset() {
+        index = 0;
+    }
+
+    void expand() {
+        if(data) {
+            u64 new_size = size * 2;
+            u8 *new_data = cast(u8*, xalloc(new_size));
+            memcpy(new_data, data, size);
+            xfree(data);
+            data = new_data;
+            size = new_size;
+        } else {
+            assert(size);
+            data = cast(u8*, xalloc(size));
+        }
+    }
+
+    u8 read_u8() override {
+        return data[index++];
+    }
+
+    void write_u8(u8 x) override {
+        if(index >= size || data == NULL) {
+            expand();
+        }
+    
+        data[index++] = x;
+    }
+
+    u64 reserve(u64 n) override {
+        if(index + n >= size || data == NULL) {
+            expand();
+        }
+        u64 i = index;
+        index += n;
+        return i;
+    }
+
+    void set_u8(u64 i, u8 x) override {
+        data[i] = x;
+    }
+};
+
+
+/////////////////////
+///    Testing    ///
+/////////////////////
+
+
+#ifdef VSTD_TESTING
+
+#ifndef VSTD_SECTIONS
+// TODO: Probably don't require this since it depends on a GCC extension...
+#error "VSTD_TESTING requires VSTD_SECTIONS"
+#endif
+
+struct Test {
+    void (*func)();
+    rstr name;
+	rstr file;
+	u8 pad[4];
+};
+
+#define deftest(func_name)                              \
+    void test_##func_name();                            \
+    const Test SECTION(v2cc_tests)  	 				\
+    test_info_##func_name = {                           \
+        .func = test_##func_name,                       \
+        .name = #func_name,                             \
+		.file = __FILE__								\
+    };                                                  \
+    void test_##func_name()
+
+#define TESTS_FOREACH(iter) SECTION_FOREACH(v2cc_tests, Test, iter)
+
+#else
+
+#define deftest(func_name) void test_##func_name()
+
+#define TESTS_FOREACH(iter) if(0)
+
+#endif
+
+
+VSTD_DEF s32 run_tests();
+
+
 #undef VSTD_DEF
 
 #endif
-// end file header_bot.hpp
 
-// begin file: impl_top.cpp
+
+
+////////////////////////////////////
+////////////////////////////////////
+///        IMPLEMENTATION        ///
+////////////////////////////////////
+////////////////////////////////////
+
+
+
 #if defined(VSTD_IMPL) && !defined(VSTD_IMPL_DONE)
-#define VSTD_IMPL_DONE
-// end file impl_top.cpp
+#define VSTD_IMPL_DONE 
 
-// begin file: general.cpp
-nvrreturn void panic(rstr fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	str s = tvsprintf(fmt, args);
-	va_end(args);
-	tfprintf(stderr, "panic: %s\n\n", s);
-	*((volatile u32*)0) = 42;
-	exit(EXIT_FAILURE);
+
+#define VSTD_MANGLE(x) _vstd_hpp_internal_##x
+
+
+//////////////////////
+///    OS Misc.    ///
+//////////////////////
+
+
+#ifdef VSTD_OS_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include "windows.h"
+#endif
+
+
+static u64 VSTD_MANGLE(page_size);
+
+u64 get_page_size() { return VSTD_MANGLE(page_size); }
+
+static_init void init_page_size() {
+#ifdef VSTD_OS_WINDOWS
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+    VSTD_MANGLE(page_size) = cast(u64, info.dwPageSize);
+#else
+    VSTD_MANGLE(page_size) = sysconf(_SC_PAGESIZE);
+#endif
 }
 
 
-nvrreturn void todo() {
-	panic("TODO");
-}
-// end file general.cpp
+///////////////////////
+///    Allocator    ///
+///////////////////////
 
-// begin file: mem/allocator.cpp
+
 struct Sys_Allocator : public Allocator {
     void* alloc(u64 n) override {
         void *p = malloc(n);
@@ -1308,9 +1632,13 @@ void xfree(void *p, Allocator *a) {
 	auto a2 = a ? a : allocator;
 	a2->free(p);
 }
-// end file mem/allocator.cpp
 
-// begin file: mem/temporary_storage.cpp
+
+///////////////////////////////
+///    Temporary Storage    ///
+///////////////////////////////
+
+
 Allocator *temp_allocator;
 Temporary_Storage temporary_storage;
 
@@ -1327,9 +1655,13 @@ void* talloc(u64 n) {
 void treset() {
 	temporary_storage.used = 0;
 }
-// end file mem/temporary_storage.cpp
 
-// begin file: hash.cpp
+
+/////////////////////
+///    Hashing    ///
+/////////////////////
+
+
 u32 murmur3(void const *input, s32 len, u32 seed) {
 	constexpr u32 C1 = 0xCC9E2D51;
 	constexpr u32 C2 = 0x1B873593;
@@ -1384,9 +1716,13 @@ u32 fnv1a(void const* input, u64 len) {
 	}
 	return x;
 }
-// end file hash.cpp
 
-// begin file: string.cpp
+
+/////////////////////
+///    Strings    ///
+/////////////////////
+
+
 str mkstr(cstr s, u64 n, Allocator *a) {
 	auto a2 = a ? a : allocator;
 	_str *r = cast(_str*, xalloc(sizeof(_str) + n + 1, a2));
@@ -1458,9 +1794,79 @@ void tfprintf(FILE *fh, rstr fmt, ...) {
 	va_end(args);
 	fprintf(fh, "%s", s);
 }
-// end file string.cpp
 
-// begin file: io/file.cpp
+
+static _istr *interned_strings = NULL;
+
+static_deinit void free_interned_strings() {
+	auto cur = interned_strings;
+	while(cur) {
+		auto prev = cur->prev;
+		xfree(cur);
+		cur = prev;
+	}
+}
+
+istr intern(cstr s) {
+	// NOTE: used rather than strsz to support regular C strings
+	u64 n = strlen(cast(rstr, s));
+
+	auto cur = interned_strings;
+	while(cur) {
+		auto is = cast(istr, cur->val.data);
+		if(n == strlen(is) && memcmp(s, is, n) == 0) {
+			return is;
+		}
+		cur = cur->prev;
+	}
+
+	auto r = cast(_istr*, xalloc(sizeof(_istr) + n + 1));
+	r->prev = interned_strings;
+	r->val.a = allocator;
+	r->val.size = n;
+	memcpy(r->val.data, s, n);
+	r->val.data[n] = 0;
+	interned_strings = r;
+	return r->val.data;
+}
+
+bool isintern(str s) {
+	auto cur = interned_strings;
+	while(cur) {
+		auto is = cast(istr, cur->val.data);
+		if(s == is) return true;
+		cur = cur->prev;
+	}
+	return false;
+}
+
+
+//////////////////////////
+///    More General    ///
+//////////////////////////
+
+
+nvrreturn void panic(rstr fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	str s = tvsprintf(fmt, args);
+	va_end(args);
+	tfprintf(stderr, "panic: %s\n\n", s);
+	*((volatile u32*)0) = 42;
+	exit(EXIT_FAILURE);
+}
+
+
+nvrreturn void todo() {
+	panic("TODO");
+}
+
+
+//////////////////////
+///    File I/O    ///
+//////////////////////
+
+
 str read_entire_file(str path, Allocator *a) {
 	FILE *fh = fopen(path, "rb");
 	if(!fh) return NULL;
@@ -1493,9 +1899,83 @@ bool write_entire_file(str path, str data) {
 
 	return true;
 }
-// end file io/file.cpp
 
-// begin file: impl_bot.cpp
+
+/////////////////////
+///    Testing    ///
+/////////////////////
+
+
+s32 run_tests() {
+#ifdef VSTD_TESTING
+	u32 passed = 0;
+    u32 failed = 0;
+    u32 test_count = 0;
+
+    TESTS_FOREACH(t) {
+        test_count++;
+
+        auto pid = fork();
+        if(pid == 0) {
+            t->func();
+            _exit(0);
+        } else {
+            int status;
+            pid_t cpid;
+            assert((cpid = wait(&status)) == pid);
+            if(status) {
+                printf(" \u001b[31;1m*\u001b[0m %s:%s\n", basename(t->file), t->name);
+                failed++;
+            } else {
+                printf(" \u001b[32;1m\u2713\u001b[0m %s:%s\n", basename(t->file), t->name);
+                passed++;
+            }
+        }
+    }    
+
+    printf(
+		"\nFailed: %u (%0.2f%%)\nPassed: %u (%0.2f%%)\nTotal:  %u\n", 
+		failed, 
+		((f64)failed / (f64)test_count) * 100.0f, 
+		passed, 
+		((f64)passed / (f64)test_count) * 100.0f, 
+		test_count
+	);
+
+    return failed ? EXIT_FAILURE : EXIT_SUCCESS;
+#else
+	fprintf(stderr, "compiled without VSTD_TESTING\n");
+	return EXIT_FAILURE;
 #endif
-// end file impl_bot.cpp
+}
 
+
+
+#undef VSTD_MANGLE
+
+
+#endif
+
+
+
+// MIT License
+// 
+// Copyright (c) 2022 vereena0x13
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
