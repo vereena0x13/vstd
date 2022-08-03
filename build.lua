@@ -19,6 +19,7 @@ end
 
 
 include "header_top.hpp"
+	include "general.hpp"
 	include "math/math.hpp"
 	include "mem/allocator.hpp"
 	include "mem/temporary_storage.hpp"
@@ -36,6 +37,7 @@ include "header_top.hpp"
 include "header_bot.hpp"
 
 include "impl_top.cpp"
+	include "general.cpp"
 	include "mem/allocator.cpp"
 	include "mem/temporary_storage.cpp"
 	include "hash.cpp"

@@ -87,6 +87,16 @@ static_assert(sizeof(f64) == 8);
 #endif
 
 
+// TODO
+#define nvrreturn     __attribute__((noreturn))
+#define nvrinline     __attribute__((noinline))
+#define forceinline   __attribute__((always_inline))
+#define static_init   __attribute__((constructor))
+#define static_deinit __attribute__((destructor))
+#define debug_trap    __builtin_trap
+#define unreachable   __builtin_unreachable
+
+
 template<typename T>
 void swap(T *a, T *b) {
 	T c = *a;
@@ -101,9 +111,12 @@ void swap(T& a, T& b) {
 	b = c;
 }
 
-
-
 // end file header_top.hpp
+
+// begin file: general.hpp
+VSTD_DEF void panic(rstr fmt, ...);
+VSTD_DEF void todo();
+// end file general.hpp
 
 // begin file: math/math.hpp
 template<typename T>
@@ -1242,6 +1255,23 @@ bool cstr_eq_fn(cstr const& a, cstr const& b) {
 #if defined(VSTD_IMPL) && !defined(VSTD_IMPL_DONE)
 #define VSTD_IMPL_DONE
 // end file impl_top.cpp
+
+// begin file: general.cpp
+nvrreturn void panic(rstr fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	str s = tvsprintf(fmt, args);
+	va_end(args);
+	tfprintf(stderr, "panic: %s\n\n", s);
+	*((volatile u32*)0) = 42;
+	exit(EXIT_FAILURE);
+}
+
+
+nvrreturn void todo() {
+	panic("TODO");
+}
+// end file general.cpp
 
 // begin file: mem/allocator.cpp
 struct Sys_Allocator : public Allocator {

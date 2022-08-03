@@ -86,6 +86,16 @@ static_assert(sizeof(f64) == 8);
 #endif
 
 
+// TODO
+#define nvrreturn     __attribute__((noreturn))
+#define nvrinline     __attribute__((noinline))
+#define forceinline   __attribute__((always_inline))
+#define static_init   __attribute__((constructor))
+#define static_deinit __attribute__((destructor))
+#define debug_trap    __builtin_trap
+#define unreachable   __builtin_unreachable
+
+
 template<typename T>
 void swap(T *a, T *b) {
 	T c = *a;
@@ -99,5 +109,3 @@ void swap(T& a, T& b) {
 	a = b;
 	b = c;
 }
-
-
