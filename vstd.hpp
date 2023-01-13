@@ -1576,6 +1576,10 @@ VSTD_DEF s32 run_tests();
 #ifdef VSTD_OS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
+#undef near
+#undef far
+#undef NEAR
+#undef FAR
 #endif
 
 
