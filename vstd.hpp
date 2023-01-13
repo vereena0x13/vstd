@@ -1648,7 +1648,7 @@ Allocator *temp_allocator;
 Temporary_Storage temporary_storage;
 
 static_init void temp_alloc_init() {
-    memset(&temporary_storage, 0, sizeof(Temporary_Storage));
+    memset(&temporary_storage.data, 0, TEMPORARY_STORAGE_SIZE);
     temp_allocator = &temporary_storage;
 }
 
