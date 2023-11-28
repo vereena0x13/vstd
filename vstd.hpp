@@ -1577,6 +1577,10 @@ VSTD_DEF s32 run_tests();
 #ifdef VSTD_OS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
+#undef near
+#undef far
+#undef NEAR
+#undef FAR
 #endif
 
 
@@ -1645,7 +1649,7 @@ Allocator *temp_allocator;
 Temporary_Storage temporary_storage;
 
 static_init void temp_alloc_init() {
-    memset(&temporary_storage, 0, sizeof(Temporary_Storage));
+    memset(&temporary_storage.data, 0, TEMPORARY_STORAGE_SIZE);
     temp_allocator = &temporary_storage;
 }
 
