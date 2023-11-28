@@ -113,9 +113,10 @@
 #include <setjmp.h>
 #include <assert.h>
 #include <unistd.h>
+#include <dirent.h>
+
 
 #ifdef VSTD_TESTING
-#include <unistd.h>
 #include <sys/wait.h>
 #endif
 
