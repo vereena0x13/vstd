@@ -1010,10 +1010,10 @@ private:
 constexpr u32 HASH_TABLE_DEFAULT_SEED = 0xB23D66D5;
 
 template<typename K>
-using HashFN = u32 (*)(K const&); // TODO: Better name?
+using HashFN = u32 (*)(K const&);
 
 template<typename K>
-using EqFN = bool (*)(K const&, K const&); // TODO: Better name?
+using EqFN = bool (*)(K const&, K const&);
 
 template<typename T>
 u32 default_hash_fn(T const& v) {
