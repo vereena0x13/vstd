@@ -678,7 +678,7 @@ VSTD_DEF void freestr(str s);
 VSTD_DEF u64 strsz(str s);
 VSTD_DEF str strcopy(str s, Allocator *a = NULL);
 VSTD_DEF bool streq(str a, str b);
-VSTD_DEF str substr(str s, u64 b, u64 e);
+VSTD_DEF str substr(str s, u64 b, u64 e, Allocator *a = NULL);
 VSTD_DEF str tvsprintf(rstr fmt, va_list args);
 VSTD_DEF str tsprintf(rstr fmt, ...);
 VSTD_DEF void tfprintf(FILE *fh, rstr fmt, ...);
@@ -1211,15 +1211,15 @@ struct Hash_Table {
 	}
 
 	f32 load_factor() const {
-		return (f32) count / (f32) size;
+		return cast(f32, count) / cast(f32, size);
 	}
 
 private:
-    s32 probe_dist(u32 hash, u32 slot_index) const noexcept {
+    inline s32 probe_dist(u32 hash, u32 slot_index) const noexcept {
         return (slot_index + size - (hash & mask)) & mask;
     }
 
-	static u32 hash_key(K key) {
+	inline static u32 hash_key(K key) {
 		u32 h = hash_fn(key);
 		// NOTE: a hash of 0 represents an empty slot
 		if(h == 0) h |= 1;
@@ -1767,12 +1767,12 @@ bool streq(str a, str b) {
 	return strcmp(a, b) == 0;
 }
 
-str substr(str s, u64 b, u64 e) {
+str substr(str s, u64 b, u64 e, Allocator *a) {
 	auto s2 = strhdr(s);
 	assert(e >= b);
 	assert(e < s2->size);
 	u64 n = e - b + 1;
-	return mkstr(s2->data + b, n);
+	return mkstr(s2->data + b, n, a);
 }
 
 str tvsprintf(rstr fmt, va_list args) {
@@ -1966,7 +1966,7 @@ s32 run_tests() {
 
 // MIT License
 // 
-// Copyright (c) 2022 vereena0x13
+// Copyright (c) 2022-2024 Vereena Inara
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
