@@ -550,10 +550,6 @@ VSTD_DEF void treset();
 #define ARENA_DEFAULT_PREALLOC_BLOCKS 1
 #endif
 
-#ifndef ARENA_MINIMUM_BLOCK_SIZE
-#define ARENA_MINIMUM_BLOCK_SIZE KIBIBYTE
-#endif
-
 struct Arena : public Allocator {
 	struct Block {
 		struct Block *prev;
@@ -1502,6 +1498,20 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     void set_u8(u64 i, u8 x) override {
         data[i] = x;
     }
+};
+
+
+//////////////////
+///    Pair    ///
+//////////////////
+
+
+template<typename A, typename B>
+struct Pair {
+	A left;
+	B right;
+
+	Pair(A _left, B _right) : left(_left), right(_right) {}
 };
 
 
