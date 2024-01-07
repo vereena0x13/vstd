@@ -37,7 +37,6 @@
 //          and files on disk. Maybe we have other
 //          options for output as well (i.e. a common interface)
 //        - File rotation, ofc
-// TODO: Add tmark and treset to Temporary_Storage?
 // TODO: Add a debug memory allocator that can be used
 // 		 as a wrapper around any Allocator* that provides
 //		 some behind-the-scenes bookkeeping in order
@@ -528,6 +527,10 @@ struct Temporary_Storage : public Allocator {
     }
 
     void free(void *p) override {}
+
+	u64 mark() { return used; }
+
+	void reset(u64 x) { used = x; }
 };
 
 VSTD_DEF Allocator *temp_allocator;
@@ -535,6 +538,8 @@ VSTD_DEF Temporary_Storage temporary_storage;
 
 VSTD_DEF void* talloc(u64 n);
 VSTD_DEF void treset();
+VSTD_DEF u64 tmark();
+VSTD_DEF void treset(u64 x);
 
 
 ///////////////////
@@ -1671,6 +1676,10 @@ void* talloc(u64 n) {
 void treset() {
 	temporary_storage.used = 0;
 }
+
+u64 tmark() { return temporary_storage.mark(); }
+
+void treset(u64 x) { temporary_storage.reset(x); }
 
 
 /////////////////////
