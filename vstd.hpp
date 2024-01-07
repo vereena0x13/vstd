@@ -1878,6 +1878,9 @@ nvrreturn void panic(rstr fmt, ...) {
 	str s = tvsprintf(fmt, args);
 	va_end(args);
 	tfprintf(stderr, "panic: %s\n\n", s);
+	#ifdef VSTD_PANIC_HOOK
+	VSTD_PANIC_HOOK
+	#endif
 	*((volatile u32*)0) = 42;
 	exit(EXIT_FAILURE);
 }
