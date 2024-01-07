@@ -1417,17 +1417,17 @@ struct RandomAccessDataOutput {
 #endif
 
 struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOutput {
-    static ByteBuf wrap(cstr s) { return ByteBuf(cast(u8*, s), 0, strlen(s)); }
-    static ByteBuf wrap(u8 *p, u64 n) { return ByteBuf(p, 0, n); }
+    static ByteBuf wrap(cstr s, Allocator *a = allocator) { return ByteBuf(cast(u8*, s), 0, strlen(s), a); }
+    static ByteBuf wrap(u8 *p, u64 n, Allocator *a = allocator) { return ByteBuf(p, 0, n, a); }
 
-	Allocator *allocator;
+	Allocator *a;
     u8 *data = NULL;
     u64 index = 0;
     u64 size;
 
     ByteBuf() : ByteBuf(BYTEBUF_DEFAULT_SIZE) {}
-    ByteBuf(u64 _size) : size(_size), allocator(allocator) {}
-    ByteBuf(u8 *_data, u64 _index, u64 _size, Allocator *_allocator) : data(_data), index(_index), size(_size), allocator(_allocator) {}
+    ByteBuf(u64 _size) : size(_size), a(allocator) {}
+    ByteBuf(u8 *_data, u64 _index, u64 _size, Allocator *_allocator) : data(_data), index(_index), size(_size), a(_allocator) {}
 
     void free() {
         xfree(data, allocator);
@@ -1448,7 +1448,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
 	    u64 size = ftell(fh);
 	    rewind(fh);
 
-        data = cast(u8*, xalloc(size, allocator));
+        data = cast(u8*, xalloc(size, a));
     	assert(fread(data, sizeof(char), size, fh) == size);
 
         fclose(fh);
@@ -1457,7 +1457,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     }
 
     str tostr(Allocator *a) {
-        auto s = mkstr(NULL, index, a ? a : allocator);
+        auto s = mkstr(NULL, index, a ? a : this->a);
         memcpy(s, data, index);
         return s;
     }
@@ -1469,9 +1469,9 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     void expand() {
         if(data) {
             u64 new_size = size * 2;
-            u8 *new_data = cast(u8*, xalloc(new_size, allocator));
+            u8 *new_data = cast(u8*, xalloc(new_size, a));
             memcpy(new_data, data, size);
-            xfree(data, allocator);
+            xfree(data, a);
             data = new_data;
             size = new_size;
         } else {
