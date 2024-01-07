@@ -1428,7 +1428,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     ByteBuf(u64 _size) : size(_size) {}
     ByteBuf(u8 *_data, u64 _index, u64 _size) : data(_data), index(_index), size(_size) {}
 
-    void deinit() {
+    void free() {
         xfree(data);
     }
 
