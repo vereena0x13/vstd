@@ -1420,16 +1420,17 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     static ByteBuf wrap(cstr s) { return ByteBuf(cast(u8*, s), 0, strlen(s)); }
     static ByteBuf wrap(u8 *p, u64 n) { return ByteBuf(p, 0, n); }
 
+	Allocator *allocator;
     u8 *data = NULL;
     u64 index = 0;
     u64 size;
 
     ByteBuf() : ByteBuf(BYTEBUF_DEFAULT_SIZE) {}
-    ByteBuf(u64 _size) : size(_size) {}
-    ByteBuf(u8 *_data, u64 _index, u64 _size) : data(_data), index(_index), size(_size) {}
+    ByteBuf(u64 _size) : size(_size), allocator(allocator) {}
+    ByteBuf(u8 *_data, u64 _index, u64 _size, Allocator *_allocator) : data(_data), index(_index), size(_size), allocator(_allocator) {}
 
     void free() {
-        xfree(data);
+        xfree(data, allocator);
     }
 
     void write_to_file(cstr path) {
@@ -1447,7 +1448,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
 	    u64 size = ftell(fh);
 	    rewind(fh);
 
-        data = cast(u8*, xalloc(size));
+        data = cast(u8*, xalloc(size, allocator));
     	assert(fread(data, sizeof(char), size, fh) == size);
 
         fclose(fh);
@@ -1455,8 +1456,8 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
         return true;
     }
 
-    str tostr() {
-        auto s = mkstr(NULL, index);
+    str tostr(Allocator *a) {
+        auto s = mkstr(NULL, index, a ? a : allocator);
         memcpy(s, data, index);
         return s;
     }
@@ -1468,9 +1469,9 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     void expand() {
         if(data) {
             u64 new_size = size * 2;
-            u8 *new_data = cast(u8*, xalloc(new_size));
+            u8 *new_data = cast(u8*, xalloc(new_size, allocator));
             memcpy(new_data, data, size);
-            xfree(data);
+            xfree(data, allocator);
             data = new_data;
             size = new_size;
         } else {
