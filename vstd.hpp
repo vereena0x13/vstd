@@ -1427,8 +1427,9 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     u64 index = 0;
     u64 size;
 
-    ByteBuf() : ByteBuf(BYTEBUF_DEFAULT_SIZE) {}
-    ByteBuf(u64 _size) : size(_size), a(allocator) {}
+	// TODO: clean these up
+    ByteBuf(Allocator *_a = allocator) : ByteBuf(BYTEBUF_DEFAULT_SIZE), a(_a) {}
+    ByteBuf(u64 _size, Allocator *_a = allocator) : size(_size), a(_a) {}
     ByteBuf(u8 *_data, u64 _index, u64 _size, Allocator *_allocator) : data(_data), index(_index), size(_size), a(_allocator) {}
 
     void free() {
