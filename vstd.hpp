@@ -1378,6 +1378,16 @@ struct DataOutput {
         write_u64(len);
         for(u64 i = 0; i < len; i++) write_u8(s[i]);
     }
+
+	inline void write_chars(str s) {
+		u64 len = strsz(s);
+		for(u64 i = 0; i < len; i++) write_u8(s[i]);
+	}
+
+	inline void write_chars(cstr s) {
+		u64 len = strlen(s);
+		for(u64 i = 0; i < len; i++) write_u8(s[i]);
+	}
 };
 
 struct RandomAccessDataOutput {
