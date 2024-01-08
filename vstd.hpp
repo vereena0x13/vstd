@@ -1459,7 +1459,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
         return true;
     }
 
-    str tostr(Allocator *a) {
+    str tostr(Allocator *a = NULL) {
         auto s = mkstr(NULL, index, a ? a : this->a);
         memcpy(s, data, index);
         return s;
