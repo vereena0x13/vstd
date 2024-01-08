@@ -897,17 +897,19 @@ struct Array {
 	}
 
 	void resize(u64 size) {
-		if(size < ARRAY_DEFAULT_SIZE) return;
-
 		assert(size >= count);
 
-		T *new_data = cast(T*, xalloc(sizeof(T) * size, a));
-		assert(new_data);
-		memcpy(new_data, data, sizeof(T) * count);
-		xfree(data, a);
+		if(data) {
+			data = cast(T*, xalloc(sizeof(T) * size, a));
+		} else {
+			T *new_data = cast(T*, xalloc(sizeof(T) * size, a));
+			assert(new_data);
+			memcpy(new_data, data, sizeof(T) * count);
+			xfree(data, a);
+			this->data = new_data;
+		}
 
 		this->size = size;
-		this->data = new_data;
 	}
 
 	void clear() {
