@@ -1384,7 +1384,7 @@ struct DataOutput {
 		for(u64 i = 0; i < len; i++) write_u8(s[i]);
 	}
 
-	inline void write_chars(cstr s) {
+	inline void write_cchars(cstr s) {
 		u64 len = strlen(s);
 		for(u64 i = 0; i < len; i++) write_u8(s[i]);
 	}
