@@ -1545,7 +1545,7 @@ struct Option final {
 	static Option<T> some(T value) { return Option(value); }
 	static Option<T> none() { return Option(); }
 
-	~Option() = delete;
+	~Option() {}
 
 	T unwrap() {
 		if(!_is_some) panic("Option is none");
@@ -1584,7 +1584,7 @@ struct Result final {
 	static Result<V, E> err(E error) { return Result(error); }
 
 	Result() = delete;
-	~Result() = delete;
+	~Result() {}
 
 	V unwrap() {
 		if(_is_error) panic("Result is an error");
