@@ -1541,12 +1541,25 @@ struct Pair final {
 
 template<typename V, typename E>
 struct Result final {
+	Result(V _value) : value(_value), _is_error(false) {}
+	Result(E _error) : error(_error), _is_error(true) {}
+
+	V unwrap() {
+		if(is_error) panic("Result is an error");
+		return value;
+	}
+
+	E get_error() {
+		if(!is_error) panic("Result is not an error");
+		return error;
+	}
+
+	inline bool is_error() { return _is_error; }
+
+private:
 	V value;
 	E error;
-	bool is_error;
-
-	Result(V _value) : value(_value), is_error(false) {}
-	Result(E _error) : error(_error), is_error(true) {}
+	bool _is_error;
 };
 
 
