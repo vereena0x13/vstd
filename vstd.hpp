@@ -1542,8 +1542,11 @@ struct Pair final {
 
 template<typename V, typename E>
 struct Result final {
-	Result(V _value) : value(_value), _is_error(false) {}
-	Result(E _error) : error(_error), _is_error(true) {}
+	static Result<V, E> ok(V value) { return Result(value); }
+	static Result<V, E> err(E error) { return Result(error); }
+
+	Result() = delete;
+	~Result() = delete;
 
 	V unwrap() {
 		if(is_error) panic("Result is an error");
@@ -1568,6 +1571,9 @@ struct Result final {
 	inline bool is_error() { return _is_error; }
 
 private:
+	Result(V _value) : value(_value), _is_error(false) {}
+	Result(E _error) : error(_error), _is_error(true) {}
+
 	V value;
 	E error;
 	bool _is_error;
