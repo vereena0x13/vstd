@@ -1549,6 +1549,16 @@ struct Result final {
 		return value;
 	}
 
+	V expect(rstr fmt, ...) {
+		if(is_error) {
+			va_args args;
+			va_start(args, fmt);
+			vpanic(fmt, args);
+			va_end(args); // NOTE: unreachable
+		}
+		return value;
+	}
+
 	E get_error() {
 		if(!is_error) panic("Result is not an error");
 		return error;
@@ -1852,7 +1862,7 @@ str tvsprintf(rstr fmt, va_list args) {
 str tsprintf(rstr fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	return tvsprintf(fmt, args);
+	return tvsprintf(fmt, args); // TODO: should we call va_end after this?
 }
 
 void tfprintf(FILE *fh, rstr fmt, ...) {
@@ -1914,9 +1924,9 @@ bool isintern(str s) {
 //////////////////////////
 
 
-nvrreturn void panic(rstr fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
+nvrreturn void vpanic(rstr fmt, va_list args) {
+	va_list args2;
+	va_copy(args2, args);
 	str s = tvsprintf(fmt, args);
 	va_end(args);
 	tfprintf(stderr, "panic: %s\n\n", s);
@@ -1925,6 +1935,12 @@ nvrreturn void panic(rstr fmt, ...) {
 	#endif
 	*((volatile u32*)0) = 42;
 	exit(EXIT_FAILURE);
+}
+
+nvrreturn void panic(rstr fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	vpanic(fmt, args);
 }
 
 
