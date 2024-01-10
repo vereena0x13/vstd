@@ -712,7 +712,7 @@ VSTD_DEF bool write_entire_file(str path, str data);
 
 
 template<typename T, u64 capacity>
-struct Static_Array {
+struct Static_Array final {
     static constexpr u64 size = capacity;
     using value_type = T;
 	using type = Static_Array<T, capacity>;
@@ -722,7 +722,7 @@ struct Static_Array {
     using ptr_const_type = type const*;
 
     template<typename AT>
-    struct IteratorBase {
+    struct IteratorBase final {
         using type = IteratorBase<AT>;
 
         IteratorBase() : a(NULL) {}
@@ -788,7 +788,7 @@ struct Static_Array {
 //          - vereena, 5/12/20
 
 template<typename T, u32 size>
-struct Slot_Allocator {
+struct Slot_Allocator final {
     T slots[size];
     s32 count;
 
@@ -830,8 +830,8 @@ struct Slot_Allocator {
 #endif
 
 template<typename T>
-struct Array {
-    struct Iterator {
+struct Array final {
+    struct Iterator final {
         Iterator() : a(NULL) {}
         Iterator(Array<T> *_a, u64 _index) : a(_a), index(_index) {}
 
@@ -853,7 +853,7 @@ struct Array {
         u64 index = 0;
     };
 
-    struct Const_Iterator {
+    struct Const_Iterator final {
         Const_Iterator() : a(NULL) {}
         Const_Iterator(Array<T> const* _a, u64 _index) : a(_a), index(_index) {}
 
@@ -1054,8 +1054,8 @@ bool default_eq_fn(T const& a, T const& b) {
 //				- vereena, 11/23/20
 
 template<typename K, typename V, HashFN<K> hash_fn = default_hash_fn, EqFN<K> eq_fn = default_eq_fn>
-struct Hash_Table {
-	struct Slot {
+struct Hash_Table final {
+	struct Slot final {
 		K key;
 		V value;
 		u32 hash;
@@ -1526,11 +1526,27 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
 
 
 template<typename A, typename B>
-struct Pair {
+struct Pair final {
 	A left;
 	B right;
 
 	Pair(A _left, B _right) : left(_left), right(_right) {}
+};
+
+
+////////////////////
+///    Result    ///
+////////////////////
+
+
+template<typename V, typename E>
+struct Result final {
+	V value;
+	E error;
+	bool is_error;
+
+	Result(V _value) : value(_value), is_error(false) {}
+	Result(E _error) : error(_error), is_error(true) {}
 };
 
 
@@ -1546,7 +1562,7 @@ struct Pair {
 #error "VSTD_TESTING requires VSTD_SECTIONS"
 #endif
 
-struct Test {
+struct Test final {
     void (*func)();
     rstr name;
 	rstr file;
