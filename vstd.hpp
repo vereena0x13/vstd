@@ -693,6 +693,7 @@ VSTD_DEF bool isintern(str s);
 //////////////////////////
 
 
+VSTD_DEF void vpanic(rstr fmt, va_list args);
 VSTD_DEF void panic(rstr fmt, ...);
 VSTD_DEF void todo();
 
@@ -1551,7 +1552,7 @@ struct Result final {
 
 	V expect(rstr fmt, ...) {
 		if(is_error) {
-			va_args args;
+			va_list args;
 			va_start(args, fmt);
 			vpanic(fmt, args);
 			va_end(args); // NOTE: unreachable
