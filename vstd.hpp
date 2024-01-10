@@ -1540,12 +1540,11 @@ struct Pair final {
 ////////////////////
 
 
-template<typename t>
+template<typename T>
 struct Option final {
 	static Option<T> some(T value) { return Option(value); }
 	static Option<T> none() { return Option(); }
 
-	Option() = delete;
 	~Option() = delete;
 
 	T unwrap() {
