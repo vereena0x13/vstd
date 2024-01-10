@@ -15,7 +15,6 @@
 
 
 
-// TODO: Add BitSet type
 // TODO: Maybe less dependence on standard 
 //       headers? would be nice..
 // TODO: Improve/Expand Allocators
@@ -1247,6 +1246,55 @@ u32 cstr_hash_fn(cstr const& s) {
 bool cstr_eq_fn(cstr const& a, cstr const& b) {
     return strcmp(a, b) == 0;
 }
+
+
+////////////////////
+///    BitSet    ///
+////////////////////
+
+
+struct BitSet final {
+    void free() {
+        data.free();
+    }
+
+    inline void set(u64 i) {
+        u64 slot = i >> 5;
+        while(data.count < slot) data.push(0);
+
+        data[slot] |= (1 << (i & 0x1F));
+
+        if(i == first_clear_bit) {
+            do {
+                first_clear_bit++;
+            } while(get(first_clear_bit));
+        }
+    }
+
+    inline void clear(u64 i) {
+        u64 slot = i >> 5;
+        while(data.count < slot) data.push(0);
+        
+        data[slot] &= ~(1 << (i & 0x1F));
+
+        if(i < first_clear_bit) first_clear_bit = i;
+    }
+
+    inline bool get(u64 i) {
+        u64 slot = i >> 5;
+        if(slot >= data.count) return false;
+        return (data[slot] & (1 << (i & 0x1F))) != 0;
+    }
+
+    inline u64 get_first_clear() {
+        assert(!get(first_clear_bit)); // NOTE TODO: remove this
+        return first_clear_bit;
+    }
+
+private:
+    Array<u32> data;
+    u64 first_clear_bit = 0;
+};
 
 
 /////////////////////////
