@@ -1536,6 +1536,45 @@ struct Pair final {
 
 
 ////////////////////
+///    Option    ///
+////////////////////
+
+
+template<typename t>
+struct Option final {
+	static Option<T> some(T value) { return Option(value); }
+	static Option<T> none() { return Option(); }
+
+	Option() = delete;
+	~Option() = delete;
+
+	T unwrap() {
+		if(!_is_some) panic("Option is none");
+		return value;
+	}
+
+	T expect(rstr fmt, ...) {
+		if(!_is_some) {
+			va_list args;
+			va_start(args, fmt);
+			vpanic(fmt, args);
+			va_end(args); // NOTE: unreachable
+		}
+		return value;
+	}
+
+	inline bool is_some() { return _is_some; }
+
+private:
+	Option() : _is_some(false) {}
+	Option(T _value) : value(_value), _is_some(true) {}
+
+	T value;
+	bool _is_some;
+};
+
+
+////////////////////
 ///    Result    ///
 ////////////////////
 
@@ -1549,12 +1588,12 @@ struct Result final {
 	~Result() = delete;
 
 	V unwrap() {
-		if(is_error) panic("Result is an error");
+		if(_is_error) panic("Result is an error");
 		return value;
 	}
 
 	V expect(rstr fmt, ...) {
-		if(is_error) {
+		if(_is_error) {
 			va_list args;
 			va_start(args, fmt);
 			vpanic(fmt, args);
@@ -1564,7 +1603,7 @@ struct Result final {
 	}
 
 	E get_error() {
-		if(!is_error) panic("Result is not an error");
+		if(!_is_error) panic("Result is not an error");
 		return error;
 	}
 
