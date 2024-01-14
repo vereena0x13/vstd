@@ -1620,6 +1620,11 @@ private:
 	bool _is_some;
 };
 
+template<typename T>
+auto Some(T value) { return Option<T>::some(value); }
+
+template<typename T>
+auto None() { return Option<T>::none(); }
 
 ////////////////////
 ///    Result    ///
