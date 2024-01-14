@@ -1591,7 +1591,7 @@ struct Pair final {
 template<typename T>
 struct Some {
 	T value;
-	Some(T _value) : value(_value) {}
+	constexpr Some(T _value) : value(_value) {}
 };
 
 struct None {};
@@ -1637,10 +1637,25 @@ private:
 ////////////////////
 
 
+template<typename V>
+struct Ok {
+	V value;
+	constexpr Ok(V _value) : value(_value) {}
+};
+
+template<typename E>
+struct Err {
+	E error;
+	constexpr Err(E _error) : error(_error) {}
+};
+
 template<typename V, typename E>
 struct Result final {
 	inline static Result<V, E> ok(V value) { return Result(value); }
 	inline static Result<V, E> err(E error) { return Result(error); }
+
+	Result(Ok<V> ok) : value(ok.value), _is_error(false) {}
+	Result(Err<E> err) : error(err.error), _is_error(true) {}
 
 	Result() = delete;
 	~Result() {}
@@ -1674,28 +1689,6 @@ private:
 	V value;
 	E error;
 	bool _is_error;
-};
-
-template<typename V>
-struct Ok {
-	constexpr Ok(V _value) : value(_value) {}
-
-	template<typename E>
-	constexpr operator Result<V, E>() const { return Result<V, E>::ok(value); }
-
-private:
-	V value;
-};
-
-template<typename E>
-struct Err {
-	constexpr Err(E _error) : error(_error) {}
-
-	template<typename V>
-	constexpr operator Result<V, E>() const { return Result<V, E>::err(error); }
-
-private:
-	E error;
 };
 
 
