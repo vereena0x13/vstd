@@ -1665,6 +1665,28 @@ private:
 	bool _is_error;
 };
 
+template<typename V>
+struct Ok {
+	constexpr Ok(V _value) : value(_value) {}
+
+	template<typename E>
+	constexpr operator Result<V, E>() const { return Result<V, E>::ok(value); }
+
+private:
+	V value;
+};
+
+template<typename E>
+struct Err {
+	constexpr Err(E _error) : error(_error) {}
+
+	template<typename V>
+	constexpr operator Result<V, E>() const { return Result<V, E>::err(error); }
+
+private:
+	E error;
+};
+
 
 /////////////////////
 ///    Testing    ///
