@@ -1589,9 +1589,20 @@ struct Pair final {
 
 
 template<typename T>
+struct Some {
+	T value;
+	Some(T _value) : value(_value) {}
+};
+
+struct None {};
+
+template<typename T>
 struct Option final {
-	static Option<T> some(T value) { return Option(value); }
-	static Option<T> none() { return Option(); }
+	inline static Option<T> some(T value) { return Option(value); }
+	inline static Option<T> none() { return Option(); }
+
+	Option(Some<T> some) : value(some.value), _is_some(true) {}
+	Option(None none) : _is_some(false) {}
 
 	~Option() {}
 
@@ -1620,11 +1631,6 @@ private:
 	bool _is_some;
 };
 
-template<typename T>
-auto Some(T value) { return Option<T>::some(value); }
-
-template<typename T>
-auto None() { return Option<T>::none(); }
 
 ////////////////////
 ///    Result    ///
@@ -1633,8 +1639,8 @@ auto None() { return Option<T>::none(); }
 
 template<typename V, typename E>
 struct Result final {
-	static Result<V, E> ok(V value) { return Result(value); }
-	static Result<V, E> err(E error) { return Result(error); }
+	inline static Result<V, E> ok(V value) { return Result(value); }
+	inline static Result<V, E> err(E error) { return Result(error); }
 
 	Result() = delete;
 	~Result() {}
