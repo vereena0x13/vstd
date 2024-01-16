@@ -527,7 +527,7 @@ struct Temporary_Storage : public Allocator {
 
     void free(void *p) override {}
 
-	u64 mark() { return used; }
+	u64 mark() const { return used; }
 
 	void reset(u64 x) { used = x; }
 };
@@ -801,7 +801,7 @@ struct Slot_Allocator final {
         count = 0;
     }
 
-    s32 index_of(T x) {
+    s32 index_of(T x) const {
         for(s32 i = 0; i < count; i++) {
             if(slots[i] == x) return i;
         }
@@ -969,12 +969,12 @@ struct Array final {
 		return r;
 	}
 
-	bool contains(T x) {
+	bool contains(T x) const {
 		if(!data) return false;
 		return index(x) != -1;
 	}
 
-	s64 index(T x) {
+	s64 index(T x) const {
 		for(u64 i = 0; i < count; i++) {
 			if(data[i] == x) return i;
 		}
@@ -1222,7 +1222,7 @@ private:
         return (slot_index + size - (hash & mask)) & mask;
     }
 
-	inline static u32 hash_key(K key) {
+	inline static u32 hash_key(K key) const noexcept {
 		u32 h = hash_fn(key);
 		// NOTE: a hash of 0 represents an empty slot
 		if(h == 0) h |= 1;
@@ -1280,7 +1280,7 @@ struct BitSet final {
         if(i < first_clear_bit) first_clear_bit = i;
     }
 
-    inline bool get(u64 i) {
+    inline bool get(u64 i) const {
         u64 slot = i >> 5;
         if(slot >= data.count) return false;
         return (data[slot] & (1 << (i & 0x1F))) != 0;
@@ -1495,7 +1495,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
         xfree(data, allocator);
     }
 
-    void write_to_file(cstr path) {
+    void write_to_file(cstr path) const {
         FILE *fh = fopen(path, "w");
         assert(fwrite(data, sizeof(char), index, fh) == index);
         fflush(fh);
@@ -1518,7 +1518,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
         return true;
     }
 
-    str tostr(Allocator *a = NULL) {
+    str tostr(Allocator *a = NULL) const {
         auto s = mkstr(NULL, index, a ? a : this->a);
         memcpy(s, data, index);
         return s;
@@ -1579,7 +1579,7 @@ struct Pair final {
 	A left;
 	B right;
 
-	Pair(A _left, B _right) : left(_left), right(_right) {}
+	constexpr Pair(A _left, B _right) : left(_left), right(_right) {}
 };
 
 
