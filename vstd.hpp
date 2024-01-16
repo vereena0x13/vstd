@@ -1222,7 +1222,7 @@ private:
         return (slot_index + size - (hash & mask)) & mask;
     }
 
-	inline static u32 hash_key(K key) const noexcept {
+	inline static u32 hash_key(K key) noexcept {
 		u32 h = hash_fn(key);
 		// NOTE: a hash of 0 represents an empty slot
 		if(h == 0) h |= 1;
