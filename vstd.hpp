@@ -1621,7 +1621,9 @@ struct Option final {
 		return value;
 	}
 
-	inline bool is_some() { return _is_some; }
+	inline bool is_some() const { return _is_some; }
+
+	inline bool is_none() const { return !_is_some; }
 
 private:
 	Option() : _is_some(false) {}
@@ -1675,12 +1677,12 @@ struct Result final {
 		return value;
 	}
 
-	E get_error() {
+	E get_error() const {
 		if(!_is_error) panic("Result is not an error");
 		return error;
 	}
 
-	inline bool is_error() { return _is_error; }
+	inline bool is_error() const { return _is_error; }
 
 private:
 	Result(V _value) : value(_value), _is_error(false) {}
