@@ -1286,7 +1286,7 @@ struct BitSet final {
         return (data[slot] & (1 << (i & 0x1F))) != 0;
     }
 
-    inline u64 get_first_clear() {
+    inline u64 get_first_clear() const {
         assert(!get(first_clear_bit)); // NOTE TODO: remove this
         return first_clear_bit;
     }
@@ -2168,7 +2168,7 @@ s32 run_tests() {
 
 // MIT License
 // 
-// Copyright (c) 2022-2024 Vereena Inara
+// Copyright (c) 2022-2025 Vereena Inara
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
