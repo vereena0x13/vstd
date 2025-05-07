@@ -368,8 +368,8 @@ constexpr T align_down(T x, T align) noexcept {
     return x - (x & (align - 1));
 }
 
-template<typename t>
-constexpr t pow(t base, t exp) noexcept {
+template<typename T>
+constexpr T pow(T base, T exp) noexcept {
     if(base == 0 && exp == 0) {
         return 1;
     } else if(base == 0) {
@@ -377,7 +377,7 @@ constexpr t pow(t base, t exp) noexcept {
     } else if(exp == 0) {
         return 1;
     }
-    t result = 1;
+    T result = 1;
     while(exp) {
         if(exp & 1) {
             result *= base;
@@ -425,14 +425,12 @@ constexpr T clamp(T x, T min, T max) noexcept {
 
 template<typename T>
 constexpr T min(T a, T b) noexcept {
-	if(a < b) return a;
-	return b;
+	return a < b ? a : b;
 }
 
 template<typename T>
 constexpr T max(T a, T b) noexcept {
-	if(a > b) return a;
-	return b;
+	return a > b ? a : b;
 }
 
 template<typename T>
@@ -900,13 +898,13 @@ struct Array final {
 		assert(size >= count);
 
 		if(data) {
-			data = cast(T*, xalloc(sizeof(T) * size, a));
-		} else {
 			T *new_data = cast(T*, xalloc(sizeof(T) * size, a));
 			assert(new_data);
 			memcpy(new_data, data, sizeof(T) * count);
 			xfree(data, a);
 			this->data = new_data;
+		} else {
+			data = cast(T*, xalloc(sizeof(T) * size, a));
 		}
 
 		this->size = size;
@@ -1052,6 +1050,9 @@ bool default_eq_fn(T const& a, T const& b) {
 // " keys stay reasonably close to the slot they originally hash to. In particular, "
 // " the variance of the keys distances from their "home" slots is minimized.  		"
 //				- vereena, 11/23/20
+
+// NOTE TODO: I strongly suspect we're succeptible to this problem:
+//            https://accidentallyquadratic.tumblr.com/post/153545455987/rust-hash-iteration-reinsertion
 
 template<typename K, typename V, HashFN<K> hash_fn = default_hash_fn, EqFN<K> eq_fn = default_eq_fn>
 struct Hash_Table final {
