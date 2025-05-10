@@ -15,7 +15,7 @@
 
 
 
-// TODO: Maybe less dependence on standard 
+// TODO: Maybe less dependence on standard
 //       headers? would be nice..
 // TODO: Improve/Expand Allocators
 //		  - realloc? it's quite unclear to me if realloc is really
@@ -28,7 +28,7 @@
 //           - Not sure what exactly I mean here lol; C++-ify slightly? *shrugs*
 // TODO: Add (more) file I/O
 //        - Actually a full virtual filesystem API would be nice
-// TODO: Add fallback allocation with logging 
+// TODO: Add fallback allocation with logging
 //		 (optional) to Temporary_Storage
 // TODO: Add a simple logging API
 //        - Just the basics: printf but to a "Log" which
@@ -104,7 +104,7 @@
 
 
 #include <stdlib.h>
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
@@ -167,7 +167,7 @@
 
 #define FLOAT_TYPES(X) \
     X(f32, float)      \
-    X(f64, double) 
+    X(f64, double)
 
 #define X(name, ctype) using name = ctype;
 INTEGRAL_TYPES(X)
@@ -271,7 +271,7 @@ void swap(T& a, T& b) {
         extern const type SECTION_STOP(section_name);                       \
         __stop_##section_name;                                              \
     })
-    
+
 
 #define SECTION_FOREACH(section_name, type, iter)                           \
     for(type const* iter = SECTION_START_SYMBOL(section_name, type);        \
@@ -806,7 +806,7 @@ struct Slot_Allocator final {
         return -1;
     }
 
-    s32 alloc(T x) {      
+    s32 alloc(T x) {
         s32 i = index_of(x);
         if(i != -1) return i;
 
@@ -901,7 +901,7 @@ struct Array final {
 			T *new_data = cast(T*, xalloc(sizeof(T) * size, a));
 			assert(new_data);
 			memcpy(new_data, data, sizeof(T) * count);
-			xfree(data, a); 
+			xfree(data, a);
 			this->data = new_data;
 		} else {
 			data = cast(T*, xalloc(sizeof(T) * size, a));
@@ -1275,7 +1275,7 @@ struct BitSet final {
     inline void clear(u64 i) {
         u64 slot = i >> 5;
         while(data.count < slot) data.push(0);
-        
+
         data[slot] &= ~(1 << (i & 0x1F));
 
         if(i < first_clear_bit) first_clear_bit = i;
@@ -1307,7 +1307,7 @@ struct DataInput {
     virtual u8 read_u8() = 0;
 
     inline u16 read_u16() {
-        return (cast(u16, read_u8()) << 8) | 
+        return (cast(u16, read_u8()) << 8) |
                 cast(u16, read_u8());
     }
 
@@ -1414,7 +1414,7 @@ struct DataOutput {
             u64 u;
         };
         f = x;
-        write_u64(u); 
+        write_u64(u);
     }
 
     inline void write_str(str s) {
@@ -1493,7 +1493,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
     ByteBuf(u8 *_data, u64 _index, u64 _size, Allocator *_allocator) : data(_data), index(_index), size(_size), a(_allocator) {}
 
     void free() {
-        xfree(data, allocator);
+        xfree(data, a);
     }
 
     void write_to_file(cstr path) const {
@@ -1510,6 +1510,8 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
         fseek(fh, 0L, SEEK_END);
 	    u64 size = ftell(fh);
 	    rewind(fh);
+
+		if(data) xfree(data, a);
 
         data = cast(u8*, xalloc(size, a));
     	assert(fread(data, sizeof(char), size, fh) == size);
@@ -1551,7 +1553,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
         if(index >= size || data == NULL) {
             expand();
         }
-    
+
         data[index++] = x;
     }
 
@@ -1753,7 +1755,7 @@ VSTD_DEF s32 run_tests();
 
 
 #if defined(VSTD_IMPL) && !defined(VSTD_IMPL_DONE)
-#define VSTD_IMPL_DONE 
+#define VSTD_IMPL_DONE
 
 
 #define VSTD_MANGLE(x) _vstd_hpp_internal_##x
@@ -2140,14 +2142,14 @@ s32 run_tests() {
                 passed++;
             }
         }
-    }    
+    }
 
     printf(
-		"\nFailed: %u (%0.2f%%)\nPassed: %u (%0.2f%%)\nTotal:  %u\n", 
-		failed, 
-		((f64)failed / (f64)test_count) * 100.0f, 
-		passed, 
-		((f64)passed / (f64)test_count) * 100.0f, 
+		"\nFailed: %u (%0.2f%%)\nPassed: %u (%0.2f%%)\nTotal:  %u\n",
+		failed,
+		((f64)failed / (f64)test_count) * 100.0f,
+		passed,
+		((f64)passed / (f64)test_count) * 100.0f,
 		test_count
 	);
 
@@ -2168,19 +2170,19 @@ s32 run_tests() {
 
 
 // MIT License
-// 
+//
 // Copyright (c) 2022-2025 Vereena Inara
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
