@@ -901,7 +901,7 @@ struct Array final {
 			T *new_data = cast(T*, xalloc(sizeof(T) * size, a));
 			assert(new_data);
 			memcpy(new_data, data, sizeof(T) * count);
-			xfree(data, a);
+			xfree(data, a); 
 			this->data = new_data;
 		} else {
 			data = cast(T*, xalloc(sizeof(T) * size, a));
