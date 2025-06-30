@@ -1514,6 +1514,7 @@ struct ByteBuf : public DataInput, public DataOutput, public RandomAccessDataOut
 		if(data) xfree(data, a);
 
         data = cast(u8*, xalloc(size, a));
+		this->size = size;
     	assert(fread(data, sizeof(char), size, fh) == size);
 
         fclose(fh);
