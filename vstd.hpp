@@ -1307,26 +1307,26 @@ struct DataInput {
     virtual u8 read_u8() = 0;
 
     inline u16 read_u16() {
-        return (cast(u16, read_u8()) << 8) |
-                cast(u16, read_u8());
+        return   cast(u16, read_u8()) 			|
+				(cast(u16, read_u8()) << 8);
     }
 
     inline u32 read_u32() {
-        return (cast(u32, read_u8()) << 24) |
-               (cast(u32, read_u8()) << 16) |
-               (cast(u32, read_u8()) << 8) |
-                read_u8();
+		return 	 cast(u32, read_u8()) 			|
+				(cast(u32, read_u8()) << 8) 	|
+				(cast(u32, read_u8()) << 16) 	|
+				(cast(u32, read_u8()) << 24);
     }
 
     inline u64 read_u64() {
-        return (cast(u64, read_u8()) << 56) |
-               (cast(u64, read_u8()) << 48) |
-               (cast(u64, read_u8()) << 40) |
-               (cast(u64, read_u8()) << 32) |
-               (cast(u64, read_u8()) << 24) |
-               (cast(u64, read_u8()) << 16) |
-               (cast(u64, read_u8()) << 8) |
-                cast(u64, read_u8());
+		return   cast(u64, read_u8()) 			|
+				(cast(u64, read_u8()) << 8) 	|
+				(cast(u64, read_u8()) << 16)    |
+				(cast(u64, read_u8()) << 24) 	|
+				(cast(u64, read_u8()) << 32) 	|
+				(cast(u64, read_u8()) << 40) 	|
+				(cast(u64, read_u8()) << 48) 	|
+				(cast(u64, read_u8()) << 56);
     }
 
     inline s8 read_s8() { return cast(s8, read_u8()); }
@@ -1372,26 +1372,26 @@ struct DataOutput {
     virtual void write_u8(u8 x) = 0;
 
     inline void write_u16(u16 x) {
-        write_u8((x >> 8) & 0xFF);
         write_u8(x & 0xFF);
+        write_u8((x >> 8) & 0xFF);
     }
 
     inline  void write_u32(u32 x) {
-        write_u8((x >> 24) & 0xFF);
-        write_u8((x >> 16) & 0xFF);
-        write_u8((x >> 8) & 0xFF);
         write_u8(x & 0xFF);
+        write_u8((x >> 8) & 0xFF);
+        write_u8((x >> 16) & 0xFF);
+        write_u8((x >> 24) & 0xFF);
     }
 
     inline void write_u64(u64 x) {
-        write_u8((x >> 56) & 0xFF);
-        write_u8((x >> 48) & 0xFF);
-        write_u8((x >> 40) & 0xFF);
-        write_u8((x >> 32) & 0xFF);
-        write_u8((x >> 24) & 0xFF);
-        write_u8((x >> 16) & 0xFF);
-        write_u8((x >> 8) & 0xFF);
         write_u8(x & 0xFF);
+        write_u8((x >> 8) & 0xFF);
+        write_u8((x >> 16) & 0xFF);
+        write_u8((x >> 24) & 0xFF);
+        write_u8((x >> 32) & 0xFF);
+        write_u8((x >> 40) & 0xFF);
+        write_u8((x >> 48) & 0xFF);
+        write_u8((x >> 56) & 0xFF);
     }
 
     inline void write_s8(s8 x) { write_u8(cast(u8, x)); }
@@ -1445,26 +1445,26 @@ struct RandomAccessDataOutput {
     virtual void set_u8(u64 i, u8 x) = 0;
 
     inline void set_u16(u64 i, u16 x) {
-        set_u8(i, (x >> 8) & 0xFF);
-        set_u8(i + 1, x & 0xFF);
+        set_u8(i, x & 0xFF);
+        set_u8(i + 1, (x >> 8) & 0xFF);
     }
 
     inline void set_u32(u64 i, u32 x) {
-        set_u8(i, (x >> 24) & 0xFF);
-        set_u8(i + 1, (x >> 16) & 0xFF);
-        set_u8(i + 2, (x >> 8) & 0xFF);
-        set_u8(i + 3, x & 0xFF);
+        set_u8(i, x & 0xFF);
+        set_u8(i + 1, (x >> 8) & 0xFF);
+        set_u8(i + 2, (x >> 16) & 0xFF);
+        set_u8(i + 3, (x >> 24) & 0xFF);
     }
 
     inline void set_u64(u64 i, u64 x) {
-        set_u8(i, (x >> 56) & 0xFF);
-        set_u8(i + 1, (x >> 48) & 0xFF);
-        set_u8(i + 2, (x >> 40) & 0xFF);
-        set_u8(i + 3, (x >> 32) & 0xFF);
-        set_u8(i + 4, (x >> 24) & 0xFF);
-        set_u8(i + 5, (x >> 16) & 0xFF);
-        set_u8(i + 6, (x >> 8) & 0xFF);
-        set_u8(i + 7, x & 0xFF);
+        set_u8(i, x & 0xFF);
+		set_u8(i + 1, (x >> 8) & 0xFF);
+		set_u8(i + 2, (x >> 16) & 0xFF);
+		set_u8(i + 3, (x >> 24) & 0xFF);
+		set_u8(i + 4, (x >> 32) & 0xFF);
+		set_u8(i + 5, (x >> 40) & 0xFF);
+		set_u8(i + 6, (x >> 48) & 0xFF);
+		set_u8(i + 7, (x >> 56) & 0xFF);
     }
 
     inline void set_s8(u64 i, s8 x) { set_u8(i, cast(u8, x)); }
