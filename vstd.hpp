@@ -910,6 +910,12 @@ struct Array final {
 		this->size = size;
 	}
 
+	void copyFrom(Array<T> const& src) {
+		resize(src.size);
+		count = src.count;
+		for(u32 i = 0; i < src.count; i++) data[i] = src[i];
+	}
+
 	void clear() {
 		count = 0;
 	}
